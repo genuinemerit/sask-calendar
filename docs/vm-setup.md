@@ -112,7 +112,7 @@ Generate and commit lock files:
 nix flake lock
 
 poetry install --no-root
-poetry export -f requirements.txt --output requirements.txt
+poetry run pip freeze > requirements.txt
 
 git add flake.lock poetry.lock requirements.txt
 git commit -m "chore: add lock files generated on sask-dev VM"

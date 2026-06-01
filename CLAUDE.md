@@ -4,19 +4,20 @@
 
 - Claude Code runs on the **Ubuntu host laptop**; the NixOS VM (`sask-dev`) is
   the canonical dev environment, accessed via SSH.
-- A local `.venv` at the project root contains `ruff` and `pymarkdownlnt`.
-  Activate it or invoke tools via `.venv/bin/<tool>`.
+- A local `.venv` at the project root contains `pymarkdownlnt` and `pytest`.
+  `ruff` is provided by the NixOS system packages and nix devShell — do not
+  use a pip-installed ruff (pre-compiled binaries fail on NixOS).
 
 ## Before every commit
 
 Run all of the following; every check must exit 0 before staging:
 
 ```bash
-.venv/bin/ruff check tools/ tests/
-.venv/bin/ruff format --check tools/ tests/
-.venv/bin/pymarkdown --config .pymarkdown scan README.md CLAUDE.md docs/ tests/results/ secrets/README.md
+ruff check tools/ tests/
+ruff format --check tools/ tests/
+nix develop --command .venv/bin/pymarkdown --config .pymarkdown scan README.md CLAUDE.md docs/ tests/results/ secrets/README.md
 python3 tools/validate_specs.py
-python3 -m pytest tests/test_validate_specs.py -q
+.venv/bin/pytest tests/test_validate_specs.py -q
 ```
 
 ## Design docs

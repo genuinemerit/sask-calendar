@@ -18,6 +18,8 @@
         ];
 
         shellHook = ''
+          export POETRY_VIRTUALENVS_PREFER_ACTIVE_PYTHON=true
+          export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH"
           echo "sask dev shell: $(python3 --version) | $(poetry --version) | ruff $(ruff --version)"
         '';
       };
