@@ -59,7 +59,7 @@ These require the NixOS dev VM to be reconfigured per docs/vm-setup.md.
 | Item | Status |
 | --- | --- |
 | All linked requirements' acceptance criteria pass | PASS (host-side); VM criteria DEFERRED |
-| First push lands on GitHub main with full tree and doc set | PENDING (push step) |
+| First push lands on GitHub main with full tree and doc set | PASS |
 | Applying configuration.nix on the VM + clean clone reproduces a working devShell | DEFERRED |
 
 ---
