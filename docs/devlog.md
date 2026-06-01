@@ -1,5 +1,24 @@
 # Dev log
 
+## 2026-06-01 — SPEC-001: VM steps complete, SPEC-001 fully PASS
+
+Completed all manual VM steps from docs/vm-setup.md:
+
+- `nixos-rebuild switch` applied; hostname confirmed `sask-dev`
+- Key-only SSH verified (password auth rejected)
+- `nix develop` confirmed: Python 3.12.13, Poetry 2.2.1, ruff 0.14.6
+- `flake.lock`, `poetry.lock`, `requirements.txt` generated and committed
+
+Fixes applied during VM steps:
+
+- `flake.nix`: added `POETRY_VIRTUALENVS_PREFER_ACTIVE_PYTHON=true` and
+  `LD_LIBRARY_PATH` fix — required for venv creation inside NixOS devShell
+- `docs/vm-setup.md`: replaced `poetry export` with `poetry run pip freeze`
+  (`poetry-plugin-export` not available in the pinned environment)
+- `CLAUDE.md`: clarified ruff comes from nix devShell, not pip
+
+SPEC-001 acceptance criteria all PASS.
+
 ## 2026-06-01 — SPEC-001: initial commit and VM configuration revised
 
 Initial bootstrap commit pushed to `genuinemerit/sask-calendar` on GitHub.
