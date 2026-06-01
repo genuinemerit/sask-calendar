@@ -1,0 +1,13 @@
+id        = "REQ-SEC-001"
+title     = "Key-only SSH access to the dev VM"
+category  = "security"
+priority  = "must"
+statement = "SSH to the dev VM must accept key-based authentication only, with password authentication and root login disabled."
+rationale = "Even a personal dev VM should start hardened; it is cheap to set declaratively and painful to retrofit."
+acceptance = [
+  "Password authentication is refused.",
+  "Direct root login is refused.",
+  "Key-based login for the dev user succeeds.",
+]
+[links]
+dds = ["DD-001"]

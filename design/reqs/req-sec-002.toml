@@ -1,0 +1,12 @@
+id        = "REQ-SEC-002"
+title     = "Secrets excluded from version control"
+category  = "security"
+priority  = "must"
+statement = "The /secrets directory must track only README.md and files ending in .example; all other contents must be git-ignored."
+rationale = "Keeps real credentials out of history from the first commit, matching the established tokens-out-of-git deployment pattern."
+acceptance = [
+  "`git check-ignore` confirms a sample secret path under /secrets is ignored.",
+  "Only README.md and *.example files under /secrets are tracked.",
+]
+[links]
+dds = ["DD-001"]

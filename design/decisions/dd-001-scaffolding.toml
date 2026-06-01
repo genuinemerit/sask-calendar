@@ -1,0 +1,77 @@
+id     = "DD-0001"
+title  = "Development environment and repository scaffolding"
+status = "proposed"
+date   = "2026-05-31"
+
+[context]
+problem = """
+sask needs a clean, reproducible development environment and repository stood
+up from zero, replacing the embedded skunkworks prototype. This is a deliberate
+evolutionary rebuild: sask is an umbrella that will later grow additional
+functional areas, so the scaffolding must be lean now yet extensible without
+later rework.
+"""
+constraints = [
+  "Few-days target; lean over elaborate — no machinery the project doesn't yet need.",
+  "Dev host is a headless NixOS VM under Virtual Machine Manager, worked on only via SSH from an Ubuntu host.",
+  "A reproducible, re-deployable dev environment is a hard requirement.",
+  "Single developer; simple git model.",
+  "Design docs are TOML; standard docs are markdown; user guides are a separate, later artifact.",
+]
+alternatives = [
+  "Keep developing inside the skunkworks project — rejected: carries accumulated mess and conflates concerns.",
+  "Graphical NixOS desktop VM — rejected: unnecessary weight for SSH-only work.",
+  "poetry2nix for the dev shell — rejected: heavier and fiddlier than a plain devShell warrants here.",
+  "Tag/branch-heavy git flow — deferred: unjustified for one developer at this scale.",
+]
+
+[decision]
+summary = """
+Stand sask up as a fresh repository with a clean layered structure. Split the
+environment along machine-vs-project lines: a headless configuration.nix defines
+the host (sask-dev); a project flake.nix devShell owns the pinned toolchain
+(python312, poetry, ruff, sqlite, plus deploy tooling). Poetry manages Python
+libraries; requirements.txt is exported for the deployed host. Git uses a single
+main branch, no tags, with a push rhythm of initial -> fixes -> final-with-docs.
+Bootstrap runs from the Ubuntu host (author docs, scaffold files, create and push
+the GitHub repo); the VM then clones and becomes the single source of dev truth,
+with lock files generated on the VM. Design docs live under /design as TOML
+(dd/req/spec) with README, /docs/devlog.md, and /docs/references.md as standard
+living documents. Root meta-files are held except .editorconfig, included for
+cross-editor consistency from commit one. design docs carry a per-type _schema.toml,
+are validated by tools/validate_specs.py, and implementation work runs available tests
+and commits proof under /tests/results/<SPEC-ID>.md
+"""
+rationale = """
+The machine/project split is what makes reproducibility real: the host is
+disposable and the toolchain reconstitutes byte-for-byte from flake.lock.
+Headless SSH-only matches how the work is actually done and sheds the heaviest
+part of the closure. Single-main git fits one developer and avoids ceremony.
+Authoring on the host then cloning on the VM resolves the bootstrap cleanly —
+the repo itself is the transfer mechanism. TOML design docs with cascaded
+DD/REQ/SPEC ids give Claude Code unambiguous references and minimize drift.
+"""
+
+[consequences]
+positive = [
+  "Reproducible dev environment pinned by flake.lock; the host is disposable.",
+  "Lean closure: no desktop, audio, or printing on the dev VM.",
+  "Future functional areas slot under /src without restructuring.",
+  "Machine-readable design docs keep AI and human work aligned.",
+  "schema-checked docs catch id/field drift automatically"
+]
+negative = [
+  "configuration.nix must reach a fresh VM once by hand before it can clone (documented manual step).",
+  "Two nixpkgs versions in play (host channel vs flake pin) — intentional, but a thing to remember.",
+  "GitHub auth is a manual step on both host and VM.",
+]
+followups = [
+  "DD: calendar engine representation (fixed-day core, 8 moons, wanderers).",
+  "DD: data and persistence (config source-of-truth, derived cache, authored event log).",
+  "DD: service and Flask UI surface (CLI/API boundary).",
+  "DD: hardened DO deploy/destroy/redeploy lifecycle.",
+  "Optional nix-direnv for auto-entering the devShell.",
+]
+
+[links]
+requirements = ["REQ-OPS-001", "REQ-OPS-002", "REQ-OPS-003", "REQ-OPS-004", "REQ-OPS-005", "REQ-SEC-001", "REQ-SEC-002"]

@@ -1,0 +1,13 @@
+id        = "REQ-OPS-004"
+title     = "Design documents validate against their schemas"
+category  = "operational"
+priority  = "must"
+statement = "Every dd, req, and spec TOML file must validate against the _schema.toml for its type; tools/validate_specs.py must exit 0 for the repository."
+rationale = "A machine-checked schema is what actually prevents the id and field drift manual review misses; the schema only earns its keep if something enforces it."
+acceptance = [
+  "Each of design/dd, design/req, design/spec contains a _schema.toml.",
+  "Running `python tools/validate_specs.py` exits 0 with all files valid.",
+  "A deliberately malformed doc (missing required field or bad id pattern) makes it exit non-zero.",
+]
+[links]
+dds = ["DD-001"]

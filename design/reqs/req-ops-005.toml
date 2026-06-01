@@ -1,0 +1,13 @@
+id        = "REQ-OPS-005"
+title     = "Test evidence committed for each completed spec"
+category  = "operational"
+priority  = "must"
+statement = "Each completed spec must run its available unit and smoke tests and commit proof of results under /tests/results/<SPEC-ID>.md."
+rationale = "Verifying results and recording the proof keeps acceptance honest and gives reviewers an audit trail."
+acceptance = [
+  "/tests/results/ exists and is tracked.",
+  "Each completed spec has a corresponding results file recording tests run and outcomes.",
+  "Deferred or deviating items are noted explicitly rather than omitted.",
+]
+[links]
+dds = ["DD-001"]

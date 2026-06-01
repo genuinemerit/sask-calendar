@@ -1,0 +1,13 @@
+id        = "REQ-OPS-001"
+title     = "Reproducible development toolchain"
+category  = "operational"
+priority  = "must"
+statement = "A fresh clone plus `nix develop` must yield the toolchain versions pinned in flake.lock, with no host-specific assumptions."
+rationale = "Reproducibility is the whole point of the flake/devShell split; the host must be disposable."
+acceptance = [
+  "On a clean machine, clone + `nix develop` enters a shell reporting the expected python and poetry versions.",
+  "flake.lock is committed and is what determines those versions.",
+  "No project tool is sourced from the host system config.",
+]
+[links]
+dds = ["DD-001"]

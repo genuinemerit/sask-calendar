@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "sask"
+version = "0.1.0"
+description = "sask — umbrella project for the Saskan calendar and related tools"
+authors = ["David <david.stitt@pm.me>"]
+license = "MIT"
+readme = "README.md"
+packages = [{ include = "sask", from = "src" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "*"
+pytest = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

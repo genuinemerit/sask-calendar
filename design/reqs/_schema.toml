@@ -1,0 +1,28 @@
+[_meta]
+type        = "req"
+description = "Requirements document schema"
+
+[fields.id]
+required = true
+pattern  = "^REQ-(OPS|SEC)-\\d{3}$"
+
+[fields.title]
+required = true
+
+[fields.category]
+required = true
+
+[fields.priority]
+required = true
+
+[fields.statement]
+required = true
+
+[fields.rationale]
+required = true
+
+[fields.acceptance]
+required = true
+
+[sections]
+required = ["links"]

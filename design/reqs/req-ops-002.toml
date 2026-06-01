@@ -1,0 +1,12 @@
+id        = "REQ-OPS-002"
+title     = "Disposable host, durable project state"
+category  = "operational"
+priority  = "must"
+statement = "All project state must live in the git repository, so destroying and recreating the dev VM and re-cloning fully restores the working environment."
+rationale = "Treating the VM as cattle, not a pet, is what makes the controlled environment trustworthy and re-deployable."
+acceptance = [
+  "Destroy, recreate, and clone yields a working devShell.",
+  "Aside from out-of-band secrets and host credentials (re-provisioned manually), no project artifact exists only on the VM.",
+]
+[links]
+dds = ["DD-001"]

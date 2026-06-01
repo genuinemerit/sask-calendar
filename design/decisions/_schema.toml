@@ -1,0 +1,19 @@
+[_meta]
+type        = "dd"
+description = "Design decision document schema"
+
+[fields.id]
+required = true
+pattern  = "^DD-\\d{4}$"
+
+[fields.title]
+required = true
+
+[fields.status]
+required = true
+
+[fields.date]
+required = true
+
+[sections]
+required = ["context", "decision", "consequences", "links"]

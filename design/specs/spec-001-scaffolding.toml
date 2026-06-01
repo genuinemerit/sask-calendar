@@ -1,0 +1,86 @@
+id            = "SPEC-001"
+title         = "Scaffold sask repository and development environment"
+status        = "draft"
+experiment_id = "baseline"
+
+[implements]
+requirements = ["REQ-OPS-001", "REQ-OPS-002", "REQ-OPS-003", "REQ-OPS-004", "REQ-OPS-005", "REQ-SEC-001", "REQ-SEC-002"]
+dds          = ["DD-001"]
+
+[scope]
+in = [
+  "Create the full directory tree, with .gitkeep in otherwise-empty dirs.",
+  "Write root files: LICENSE, .gitignore, pyproject.toml, flake.nix, .editorconfig.",
+  "Write configuration.nix under /infra (full replacement of /etc/nixos/configuration.nix on the existing NixOS VM).",
+  "Write the flake.nix devShell (pinned project toolchain only).",
+  "Seed /design with DD-001, the five REQs, and this SPEC.",
+  "Write README.md, /docs/devlog.md, /docs/references.md, /docs/vm-setup.md.",
+  "Write the three _schema.toml files.",
+  "Write the schema-enforcing tools/validate_specs.py.",
+  "Write tests/test_validate_specs.py and run to exit 0.",
+  "Run the validator to exit 0.",
+  "Post SPEC-001 results under /tests/results/SPEC-001.md.",
+  "git init, initial commit, create GitHub repo (genuinemerit/sask-calendar), first push.",
+  "[manual] Fill in the Ubuntu host's SSH public key placeholder in infra/configuration.nix.",
+  "[manual] Copy configuration.nix to the VM and run nixos-rebuild switch.",
+  "[manual] Verify key-only SSH and hostname sask-dev; clone the repo on the VM.",
+  "[manual, on VM] Generate and commit flake.lock and poetry.lock; export requirements.txt.",
+]
+out = [
+  "Any Digital Ocean provisioning or deployment.",
+  "Any calendar engine, data, service, or UI logic.",
+  "Ansible/OpenTofu content beyond placeholder directories.",
+]
+
+[deliverables]
+files = [
+  "Directory tree per REQ-OPS-003",
+  "LICENSE, .gitignore, .editorconfig",
+  "pyproject.toml, flake.nix",
+  "infra/configuration.nix",
+  "design/decisions/dd-001-scaffolding.toml",
+  "design/reqs/ (five REQ files)",
+  "design/specs/spec-001-scaffolding.toml",
+  "design/decisions/_schema.toml, design/reqs/_schema.toml, design/specs/_schema.toml",
+  "tools/validate_specs.py",
+  "tests/test_validate_specs.py",
+  "README.md, docs/devlog.md, docs/references.md, docs/vm-setup.md",
+  "tests/results/SPEC-001.md",
+  "flake.lock, poetry.lock, requirements.txt (generated on the VM)",
+]
+tests = [
+  "pytest tests/test_validate_specs.py — validator rejects malformed docs.",
+  "python tools/validate_specs.py — exits 0 on valid design docs.",
+  "bash smoke: git check-ignore on a sample /secrets path returns ignored.",
+  "[deferred to VM] nix develop succeeds on fresh clone.",
+  "[deferred to VM] python3 and poetry versions match flake.lock pins.",
+  "[deferred to VM] ruff --version runs inside devShell.",
+]
+
+[acceptance]
+items = [
+  "All linked requirements' acceptance criteria pass.",
+  "First push lands on GitHub main with the full tree and doc set.",
+  "Applying configuration.nix on the VM + clean clone reproduces a working devShell.",
+]
+
+[review]
+focus = [
+  ".gitignore covers /secrets except README.md and *.example.",
+  "No project tooling leaks into configuration.nix (clean flake/config split).",
+  "configuration.nix enforces key-only SSH (PasswordAuthentication = false, PermitRootLogin = no).",
+]
+smoke_test = "From a clean checkout: nix develop, then python3/poetry/ruff --version, and git check-ignore on a sample /secrets path."
+
+[notes]
+for_assistant = """
+Claude Code executes the non-[manual] scope items from the Ubuntu host. Do not
+attempt the [manual] steps — they are recorded here for the developer. Manual
+order: (1) get the Ubuntu host's SSH public key and fill the placeholder in
+infra/configuration.nix; (2) scp configuration.nix to the VM and run
+nixos-rebuild switch; (3) verify key-only SSH and hostname sask-dev; (4) clone
+the repo on the VM; (5) in the devShell, generate and commit flake.lock and
+poetry.lock, then export requirements.txt. GitHub auth via ~/.ssh/sask_ed25519
+is already in place on the VM. See docs/vm-setup.md for the detailed procedure.
+The repo's configuration.nix is canonical after step 2.
+"""

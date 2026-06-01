@@ -1,0 +1,13 @@
+id        = "REQ-OPS-003"
+title     = "Standard repository layout and document set"
+category  = "operational"
+priority  = "must"
+statement = "After first push the repo must contain the agreed tree (/ansible, /design{dd,req,spec}, /docs, /infra, /resources, /scripts, /secrets, /src, /tests, /tools) and the standard documents (README, /docs/devlog.md, /docs/references.md)."
+rationale = "A predictable layout lets Claude Code and the developer navigate without ambiguity, and lets future functional areas slot into /src cleanly."
+acceptance = [
+  "All listed directories exist (empty ones tracked via .gitkeep).",
+  "README, /docs/devlog.md, and /docs/references.md are present and non-empty.",
+  "/design holds this scaffolding dd, its reqs, and its spec.",
+]
+[links]
+dds = ["DD-001"]
