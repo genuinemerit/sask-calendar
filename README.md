@@ -37,6 +37,21 @@ tests/        pytest suites and test results
 tools/        developer tooling (validate_specs.py, pre-commit-check.sh, run-tests.sh)
 ```
 
+## Running the web app
+
+Install dependencies into the project venv (once), then run Flask's dev server:
+
+```bash
+.venv/bin/pip install flask gunicorn
+PYTHONPATH=src .venv/bin/flask --app sask.web run
+```
+
+Or with gunicorn:
+
+```bash
+PYTHONPATH=src .venv/bin/gunicorn wsgi:app
+```
+
 ## Pre-commit checks
 
 Run before every commit; all checks must exit 0:

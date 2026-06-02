@@ -1,5 +1,26 @@
 # Dev log
 
+## 2026-06-02 — SPEC-005: Flask UI thin vertical slice
+
+**SPEC-005 implemented** — 12 tests, all pass (72 total):
+
+- `src/sask/web/__init__.py` — `create_app()` factory; config loaded once, stored in
+  `app.config`; template folder resolved relative to `__file__`
+- `src/sask/web/routes.py` — `GET /?pulse=<n>`; float input rounded; errors rendered
+  in-page
+- `src/sask/web/translator.py` — `PulseViewModel` dataclass + `to_pulse_view()`; formats
+  `day_pulse_offset` as `HH:MM:SS`, orbital position as `25.0000%`
+- `src/sask/templates/base.html`, `index.html` — server-rendered Jinja, no JavaScript
+- `wsgi.py` — gunicorn entry point at project root
+- `pyproject.toml` — added `flask >= 3.0` and `gunicorn >= 22.0` runtime dependencies
+- `tests/test_spec_005.py` — HTTP smoke, float rounding, error path, no-script, and
+  AST layer-purity checks (engine files must not import flask)
+
+Also in this session: `pulse_of_day` renamed to `day_pulse_offset` throughout
+(`message.py`, `pulse.py`, `test_spec_002.py`).
+
+**Next:** SPEC-003 (solar calendar conversions) + SPEC-004 (seasons).
+
 ## 2026-06-02 — SPEC-002: pulse/day core and config foundation
 
 **Design documents added** (DD-0002, DD-0003, REQ-FUN-001–005, REQ-OPS-006–009,
@@ -16,7 +37,7 @@ SPEC-002–005, `docs/glossary.md`):
   `seasons.toml`, `timeline.toml`
 - `src/sask/message.py` — frozen dataclasses: `PulseInfo`, `CalendarDate`, `SeasonInfo`
 - `src/sask/config_loader.py` — typed config dataclasses, `load_config()`, `ConfigError`
-- `src/sask/pulse.py` — `astro_day()`, `pulse_of_day()`, `orbital_position()`,
+- `src/sask/pulse.py` — `astro_day()`, `day_pulse_offset()`, `orbital_position()`,
   `civil_day()`, `pulse_info()`; translator stubs for SPEC-003
 - `tests/test_spec_002.py` — signed pulse arithmetic, orbital position, day-start offset,
   config loading and validation

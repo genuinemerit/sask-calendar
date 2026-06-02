@@ -2,7 +2,7 @@
 
 Covers:
   - astro_day() signed arithmetic (positive, zero, negative pulses)
-  - pulse_of_day() range and negative-pulse behaviour
+  - day_pulse_offset() range and negative-pulse behaviour
   - orbital_position() stays in [0.0, 1.0)
   - civil_day() day_start_offset shifts day boundaries
   - pulse_info() message-unit constructor
@@ -19,7 +19,13 @@ import pytest
 
 from sask.config_loader import ConfigError, load_config
 from sask.message import CalendarDate, PulseInfo, validate
-from sask.pulse import astro_day, civil_day, orbital_position, pulse_info, pulse_of_day
+from sask.pulse import (
+    astro_day,
+    civil_day,
+    day_pulse_offset,
+    orbital_position,
+    pulse_info,
+)
 
 REAL_CONFIG = Path(__file__).parent.parent / "config"
 PULSES_PER_DAY = 86_400
@@ -65,28 +71,28 @@ def test_astro_day_two_full_negative_days():
     assert astro_day(-2 * PULSES_PER_DAY) == -1
 
 
-# ── pulse_of_day ──────────────────────────────────────────────────────────────
+# ── day_pulse_offset ──────────────────────────────────────────────────────────
 
 
-def test_pulse_of_day_zero():
-    assert pulse_of_day(0) == 0
+def test_day_pulse_offset_zero():
+    assert day_pulse_offset(0) == 0
 
 
-def test_pulse_of_day_end_of_day():
-    assert pulse_of_day(PULSES_PER_DAY - 1) == PULSES_PER_DAY - 1
+def test_day_pulse_offset_end_of_day():
+    assert day_pulse_offset(PULSES_PER_DAY - 1) == PULSES_PER_DAY - 1
 
 
-def test_pulse_of_day_start_of_second_day():
-    assert pulse_of_day(PULSES_PER_DAY) == 0
+def test_day_pulse_offset_start_of_second_day():
+    assert day_pulse_offset(PULSES_PER_DAY) == 0
 
 
-def test_pulse_of_day_negative_one():
+def test_day_pulse_offset_negative_one():
     # Python: -1 % 86400 = 86399
-    assert pulse_of_day(-1) == PULSES_PER_DAY - 1
+    assert day_pulse_offset(-1) == PULSES_PER_DAY - 1
 
 
-def test_pulse_of_day_negative_full_day():
-    assert pulse_of_day(-PULSES_PER_DAY) == 0
+def test_day_pulse_offset_negative_full_day():
+    assert day_pulse_offset(-PULSES_PER_DAY) == 0
 
 
 # ── orbital_position ──────────────────────────────────────────────────────────
@@ -142,7 +148,7 @@ def test_civil_day_at_sunrise_is_day_one():
     assert civil_day(SUNRISE_OFFSET, SUNRISE_OFFSET) == 1
 
 
-def test_civil_day_last_pulse_of_day_one():
+def test_civil_day_last_day_pulse_offset_one():
     assert civil_day(SUNRISE_OFFSET + PULSES_PER_DAY - 1, SUNRISE_OFFSET) == 1
 
 
@@ -163,27 +169,27 @@ def test_pulse_info_day_1(cfg):
     assert isinstance(info, PulseInfo)
     assert info.pulse == 0
     assert info.astro_day == 1
-    assert info.pulse_of_day == 0
+    assert info.day_pulse_offset == 0
     assert info.orbital_position == 0.0
 
 
 def test_pulse_info_day_2(cfg):
     info = pulse_info(PULSES_PER_DAY, cfg)
     assert info.astro_day == 2
-    assert info.pulse_of_day == 0
+    assert info.day_pulse_offset == 0
 
 
 def test_pulse_info_negative_pulse(cfg):
     info = pulse_info(-1, cfg)
     assert info.astro_day == 0
-    assert info.pulse_of_day == PULSES_PER_DAY - 1
+    assert info.day_pulse_offset == PULSES_PER_DAY - 1
 
 
 # ── validate helper ───────────────────────────────────────────────────────────
 
 
 def test_validate_passes_complete_pulse_info():
-    unit = PulseInfo(pulse=0, astro_day=1, pulse_of_day=0, orbital_position=0.0)
+    unit = PulseInfo(pulse=0, astro_day=1, day_pulse_offset=0, orbital_position=0.0)
     assert validate(unit) == []
 
 

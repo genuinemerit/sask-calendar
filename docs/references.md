@@ -8,6 +8,8 @@
 - [Ruff](https://docs.astral.sh/ruff/) — Python linter and formatter
 - [pytest](https://docs.pytest.org/) — Python test framework
 - [tomllib](https://docs.python.org/3/library/tomllib.html) — TOML parsing (Python 3.11+ stdlib)
+- [Flask](https://flask.palletsprojects.com/) — web framework (server-rendered Jinja UI)
+- [gunicorn](https://gunicorn.org/) — WSGI server for production deployment
 
 ## Infrastructure
 

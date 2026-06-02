@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Saskan Calendar{% endblock %}</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 720px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      color: #222;
+    }
+    h1 { font-size: 1.4rem; margin-bottom: 1.5rem; }
+    label { display: block; margin-bottom: .3rem; font-weight: bold; }
+    input[type=number] {
+      width: 18rem;
+      padding: .3rem .5rem;
+      font-size: 1rem;
+      border: 1px solid #aaa;
+      border-radius: 3px;
+    }
+    button {
+      margin-left: .5rem;
+      padding: .3rem .9rem;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    table { border-collapse: collapse; margin-top: 1.5rem; }
+    th, td { border: 1px solid #ccc; padding: .4rem .9rem; text-align: left; }
+    th { background: #f4f4f4; white-space: nowrap; }
+    .error { color: #c00; margin-top: .75rem; }
+  </style>
+</head>
+<body>
+{% block content %}{% endblock %}
+</body>
+</html>

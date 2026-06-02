@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Saskan Calendar — Pulse Lookup{% endblock %}
+
+{% block content %}
+<h1>Saskan Calendar — Pulse Lookup</h1>
+
+<form method="get" action="/">
+  <label for="pulse">Pulse</label>
+  <input type="number" id="pulse" name="pulse" step="any"
+         value="{{ view.pulse if view else default_pulse }}">
+  <button type="submit">Query</button>
+</form>
+
+{% if error %}
+  <p class="error">{{ error }}</p>
+{% endif %}
+
+{% if view %}
+  <table>
+    <tr><th>Pulse</th>              <td>{{ view.pulse }}</td></tr>
+    <tr><th>Astro Day</th>          <td>{{ view.astro_day }}</td></tr>
+    <tr><th>Day Pulse Offset</th>   <td>{{ view.day_pulse_offset }}
+                                        ({{ view.time_of_day }} Astro time)</td></tr>
+    <tr><th>Orbital Position</th>   <td>{{ view.orbital_position_pct }} of AstroYear</td></tr>
+  </table>
+{% endif %}
+{% endblock %}

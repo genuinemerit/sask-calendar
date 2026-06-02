@@ -16,7 +16,7 @@ class PulseInfo:
 
     pulse: int
     astro_day: int
-    pulse_of_day: int
+    day_pulse_offset: int  # pulses elapsed since Astro midnight [0, 86400)
     orbital_position: float  # AstroYear position [0.0, 1.0)
 
 

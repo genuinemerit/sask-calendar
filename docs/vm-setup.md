@@ -121,3 +121,21 @@ git push
 
 The VM is now the single source of dev truth. Lock files are committed and
 the environment is fully reproducible from a clean clone.
+
+## 6. Create the project venv for dev tooling
+
+The project `.venv` is gitignored and must be created manually. It provides
+`pymarkdownlnt`, `pytest`, `flask`, and `gunicorn` outside of the nix devShell
+so pre-commit checks and the Flask app can run without `nix develop` active:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install pymarkdownlnt pytest flask gunicorn
+```
+
+Verify:
+
+```bash
+.venv/bin/pytest --version
+.venv/bin/flask --version
+```

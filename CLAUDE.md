@@ -4,9 +4,9 @@
 
 - Claude Code runs on the **Ubuntu host laptop**; the NixOS VM (`sask-dev`) is
   the canonical dev environment, accessed via SSH.
-- A local `.venv` at the project root contains `pymarkdownlnt` and `pytest`.
-  `ruff` is provided by the NixOS system packages and nix devShell — do not
-  use a pip-installed ruff (pre-compiled binaries fail on NixOS).
+- A local `.venv` at the project root contains `pymarkdownlnt`, `pytest`,
+  `flask`, and `gunicorn`. `ruff` is provided by the NixOS system packages and
+  nix devShell — do not use a pip-installed ruff (pre-compiled binaries fail on NixOS).
 
 ## Before every commit
 

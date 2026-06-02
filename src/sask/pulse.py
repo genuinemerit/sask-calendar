@@ -26,8 +26,8 @@ def astro_day(pulse: int, pulses_per_day: int = 86_400) -> int:
     return pulse // pulses_per_day + 1
 
 
-def pulse_of_day(pulse: int, pulses_per_day: int = 86_400) -> int:
-    """Return the pulse count within the current Astro day [0, pulses_per_day).
+def day_pulse_offset(pulse: int, pulses_per_day: int = 86_400) -> int:
+    """Return pulses elapsed since Astro midnight for this day [0, pulses_per_day).
 
     Python's % always returns a non-negative result when the divisor is
     positive, so this is correct for negative pulses too.
@@ -63,7 +63,7 @@ def pulse_info(pulse: int, cfg: AppConfig) -> PulseInfo:
     return PulseInfo(
         pulse=pulse,
         astro_day=astro_day(pulse, tc.pulses_per_day),
-        pulse_of_day=pulse_of_day(pulse, tc.pulses_per_day),
+        day_pulse_offset=day_pulse_offset(pulse, tc.pulses_per_day),
         orbital_position=orbital_position(pulse, tc.astro_year_pulses),
     )
 
