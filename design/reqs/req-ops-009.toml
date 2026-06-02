@@ -1,0 +1,12 @@
+id="REQ-OPS-009"
+title="Derived data is regenerable, not source of truth"
+category="operational"
+priority="must"
+statement="Computed results (phases, conjunctions, ephemerides, Kanka events) are regenerable from config and may be cached, but are never treated as source of truth; only config and authored facts are authoritative."
+rationale="Treating cached results as authoritative creates two sources of truth that can diverge; regenerability ensures config alone is sufficient to reconstruct the full state."
+acceptance=[
+  "Dropping any cache and recomputing yields identical results.",
+  "Authored facts survive a cache rebuild; no authored datum exists only in a derived cache.",
+]
+[links]
+dds=["DD-002"]

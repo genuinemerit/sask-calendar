@@ -1,0 +1,5 @@
+# Timeline anchors.
+#
+# story_now_pulse: the canonical "present moment" of the narrative.
+#   Astro Day 829,200 = Fatunik year ~2017, Terpin year ~2271.
+story_now_pulse = 71642553600

@@ -1,0 +1,12 @@
+id="REQ-OPS-008"
+title="Defined, typed message units"
+category="operational"
+priority="must"
+statement="Every engine function returns a defined message unit with consistent snake_case keys and consistent field types, validated against its meta-definition; ad hoc or type-heterogeneous returns are not permitted."
+rationale="Ad hoc returns make the seam between engine and consumer fragile; typed message units are the contract that lets UI, API, and test code stay independent of engine internals."
+acceptance=[
+  "Returns validate against their meta-definitions.",
+  "A field never mixes types (e.g., no string 'n/a' in a numeric field; use null).",
+]
+[links]
+dds=["DD-002"]

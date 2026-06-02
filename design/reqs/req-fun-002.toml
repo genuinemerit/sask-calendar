@@ -1,0 +1,12 @@
+id="REQ-FUN-002"
+title="Canonical pulse with derived, reversible calendar views"
+category="functional"
+priority="must"
+statement="The Astro pulse is the canonical instant; day = floor(pulse/86400)+1; calendar dates and astronomical positions are derived from it. Astro-to-calendar translation is consistent and reversible to day resolution, and astronomical computations (seasons, equinoxes, positions) derive from the AstroYear, not any civil calendar."
+rationale="Anchoring every computation to the pulse keeps astronomy drift-free under civil leap rules and makes round-trip conversion the standard correctness test."
+acceptance=[
+  "pulse -> calendar -> pulse round-trips consistently to day resolution.",
+  "Season and equinox boundaries track orbital position and do not shift when a civil calendar applies leap rules.",
+]
+[links]
+dds=["DD-002"]

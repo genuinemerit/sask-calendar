@@ -1,0 +1,13 @@
+id="REQ-FUN-005"
+title="Apparition model for episodic objects"
+category="functional"
+priority="must"
+statement="Episodic objects (the Spark, comets) are modeled as apparitions with an epoch and a duration window, driven by authored events and/or deterministic seeded generators; per-day independent randomness is not used."
+rationale="Per-day randomness cannot produce events that span multiple nights; an epoch-plus-duration window ensures continuous visibility and deterministic reproducibility for authored lore events."
+acceptance=[
+  "An apparition is continuously visible across its full window, not a single random day.",
+  "Authored apparitions (e.g., The First Spark) appear on their authored pulse.",
+  "Apparition occurrence is reproducible for a given seed and config.",
+]
+[links]
+dds=["DD-002"]

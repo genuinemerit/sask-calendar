@@ -1,0 +1,56 @@
+id     = "SPEC-004"
+title  = "Seasonal context"
+status = "draft"
+experiment_id = "baseline"
+
+[implements]
+requirements = ["REQ-FUN-001","REQ-FUN-002","REQ-OPS-006","REQ-OPS-008"]
+dds          = ["DD-002"]
+
+[scope]
+in = [
+  "Astronomical seasons as four quarters of the AstroYear orbital position: Greening (spring, at the equinox), Blazing (summer), Withering (autumn), Stillness (winter).",
+  "Precise equinox, solstice, and mid-season event pulses computed per AstroYear from orbital position.",
+  "Configurable fuzzy 'on or near' detection comparing a date's pulse to the precise event pulses.",
+  "Seasonal context for a date expressed in any of the 3 calendars (convert to pulse, compute, attach).",
+  "Season and event names from config (lore overlay; keys in code).",
+]
+out = [
+  "UI, and any lunar/wanderer/star logic.",
+]
+
+[deliverables]
+files = [
+  "src: season / seasonal-context module",
+  "config: season and event names plus the 'near' tolerance window",
+  "tests: boundary, event-proximity, and cross-calendar tests",
+]
+tests = [
+  "Greening opens at the spring equinox (Astro day 1); the four season starts land at the quarter points.",
+  "Equinox/solstice/mid-season detection respects the configurable tolerance window.",
+  "A date in each of the 3 calendars yields the correct astronomical season.",
+  "A season computed for a Terpin-drifted New Year reflects the true astronomical season, not spring.",
+]
+
+[acceptance]
+items = [
+  "Seasons and events are computed from AstroYear orbital position, never the civil calendars.",
+  "'On or near' an equinox/solstice/mid-season is detected within the configured window.",
+  "Seasonal info attaches correctly regardless of which calendar the date came from.",
+  "No drift in seasons under civil leap rules.",
+]
+
+[review]
+focus = [
+  "Astronomical (not civil) computation of seasons and events.",
+  "Circular/wrap handling of the orbital position.",
+  "Tolerance-window edge cases at event boundaries.",
+]
+smoke_test = "Query season and event for an equinox day, a mid-season day, and an arbitrary day across all 3 calendars."
+
+[notes]
+for_assistant = """
+Seasons hang off the AstroYear orbital position computed from the pulse; the
+calendar a date is expressed in only affects display, never the season result.
+That is what keeps seasons drift-free under civil leap rules.
+"""

@@ -1,0 +1,31 @@
+# Seasonal definitions.
+#
+# Seasons are quarters of the AstroYear orbital position [0.0, 1.0).
+# orbital_start: the orbital position at which the season begins.
+#   0.0 = spring equinox (Greening), 0.25 = summer solstice (Blazing),
+#   0.5 = autumn equinox (Withering), 0.75 = winter solstice (Stillness).
+#
+# near_tolerance: orbital-position width for "on or near" an event
+#   (equinox, solstice, mid-season). 0.01 ≈ 3.65 days either side.
+
+near_tolerance = 0.01
+
+[[seasons]]
+id            = "greening"
+name          = "Greening"
+orbital_start = 0.0
+
+[[seasons]]
+id            = "blazing"
+name          = "Blazing"
+orbital_start = 0.25
+
+[[seasons]]
+id            = "withering"
+name          = "Withering"
+orbital_start = 0.5
+
+[[seasons]]
+id            = "stillness"
+name          = "Stillness"
+orbital_start = 0.75

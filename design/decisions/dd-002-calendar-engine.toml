@@ -1,0 +1,93 @@
+id     = "DD-0002"
+title  = "Calendrical and astronomical engine architecture"
+status = "proposed"
+date   = "2026-06-01"
+
+[context]
+problem = """
+sask-calendar must compute astronomical and calendrical results for Saskantinon —
+calendars, moon phases, seasons, wanderers, star context, and noteworthy events —
+as reference for writing and worldbuilding and a future RPG. The prototype
+embedded data, lore, and computation together and conflated civil and astronomical
+frames. This DD fixes the engine's architecture so detailed mechanics can be
+specified without re-litigating structure.
+"""
+constraints = [
+  "Storytelling-grade physics: simplified but internally consistent, not a research engine.",
+  "Multiple cultures and languages: the computed view must be separable from lore.",
+  "Lean MVP in days; add complexity only where it earns story value.",
+  "AstroYear is exactly Earth's tropical year: 365.2422 days = 31,556,926.08 pulses (86,400 pulses/day).",
+]
+alternatives = [
+  "Keep computation and lore intertwined as in the prototype — rejected: blocks multi-culture support and drifts.",
+  "Compute seasons/calendars from a civil day-of-year — rejected: leap rules would drift the astronomy.",
+  "Full 3-D orbital model — deferred: a single latitude cycle suffices for eclipse rarity.",
+  "Per-day random apparitions — rejected: cannot represent multi-day events and fights authored lore.",
+]
+
+[decision]
+summary = """
+The engine is a set of pure, deterministic functions over one canonical instant
+(the Astro pulse; 86,400/day; day = floor(pulse/86,400)+1) plus config. Core
+commitments:
+1. Config is the source of truth — all bodies, calendars, seasons, stars, names,
+   and lore live in config; functions hold no hardcoded domain or lore data.
+2. Technical-first, lore-second — the computed model is defined independently of
+   any culture; lore (names, descriptions, cultural calendars and observances) is
+   an overlay mapped via translators, enabling multiple languages and cultures.
+3. Astronomical vs civil are separate — astronomy (equinoxes, positions, the
+   AstroYear) is computed precisely from orbital position; civil calendars
+   (Fatunik: intercalary + 5-turn day; Terpin: ~32-turn month correction; lunar
+   calendars TBD) apply their own leap/float rules as overlays and never drive
+   the astronomy.
+4. Cyclic quantities are normalized 0.0-1.0 with circular math and explicit
+   reference frames: synodic (relative to Fatune) drives phase and visibility;
+   sidereal/seasonal drives star context; a latitude cycle gates eclipses.
+5. Each orbiting body carries explicit dynamical inputs — sidereal period, epoch
+   phase offset, optional inclination + node — kept separate from descriptive
+   lore; synodic period is derived from the sidereal period and the AstroYear.
+6. Visibility is a 0.0-1.0 scalar from synodic position (visible band 0.1-0.9),
+   booleans derived by threshold; fixed stars use a seasonal visibility window.
+7. Episodic objects (Spark, comets) are apparitions — epoch plus duration window —
+   driven by authored events and/or deterministic seeded generators, never
+   per-day randomness; chaotic phenomena (Kanka) use pulse-seeded generators,
+   regenerable rather than enumerated.
+8. Co-occurrences use two distinct predicates over a shared fuzzy tolerance
+   window: co_fullness (N moons near full together) and positional_conjunction
+   (N bodies near the same apparent position).
+9. Persistence is tiered — config is truth; authored facts are the only persisted
+   source of truth; computed results are regenerable and at most cached. Engine
+   functions return defined, typed message units, not ad hoc shapes.
+"""
+rationale = """
+Pure-function-over-pulse-plus-config makes everything reproducible, testable, and
+host-disposable, and lets the prototype be rebuilt cleanly. Separating technical
+from lore makes a multi-culture world tractable. Separating astronomy from civil
+calendars keeps a precise AstroYear meaningful under leap rules. The normalized,
+frame-explicit quantities and the apparition model remove the ambiguities and
+bugs the prototype review surfaced.
+"""
+
+[consequences]
+positive = [
+  "Reproducible, testable engine; the same pulse and config always yield the same result.",
+  "Multiple cultures and languages supported by swapping the lore overlay, not the math.",
+  "Seasons and star context no longer drift under civil leap rules.",
+  "Eclipses and true conjunctions are rare and special by construction.",
+  "The prototype's hardcoded data and per-day randomness are eliminated.",
+]
+negative = [
+  "Config must carry data the prototype hid in code (epoch offsets, inclination/node, apparitions).",
+  "Lunar calendars still need collaborative design before they can be specified.",
+  "Nothing computes a phase without the AstroYear constant (now fixed).",
+]
+followups = [
+  "SPEC(s): date core + Astro<->calendar translation (Fatunik, Terpin; lunar after design).",
+  "SPEC(s): bodies — moons and wanderers, phase, visibility, eclipses, conjunctions.",
+  "SPEC(s): seasons, star context, apparitions (Spark, comets), Kanka generator.",
+  "Design session: how the lunar calendars work.",
+  "Possible split-out: a dedicated data/persistence DD if the data layer grows.",
+]
+
+[links]
+requirements = ["REQ-FUN-001","REQ-FUN-002","REQ-FUN-003","REQ-FUN-004","REQ-FUN-005","REQ-OPS-006","REQ-OPS-007","REQ-OPS-008","REQ-OPS-009"]

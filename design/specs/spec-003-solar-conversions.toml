@@ -1,0 +1,57 @@
+id     = "SPEC-003"
+title  = "Solar calendar conversions (Astro, Fatunik, Terpin)"
+status = "draft"
+experiment_id = "baseline"
+
+[implements]
+requirements = ["REQ-FUN-001","REQ-FUN-002","REQ-OPS-006","REQ-OPS-008"]
+dds          = ["DD-002"]
+
+[scope]
+in = [
+  "Astro<->Fatunik<->Terpin translation via each calendar's epoch offset, day_start_offset, month structure, and leap rules.",
+  "Fatunik: Gregorian 4/100/400 leap via festival length (5/6); 13 months (Gleaming=month 1, 5-6 days; 2-13 = 30); sunrise day-start (+21,600).",
+  "Terpin: 132/4620 leap via festival length (5/37/36); 13 months (festival=month 1; 2-13 = 30); midnight day-start (0).",
+  "1-indexed months and days; continuous year numbering from 1.",
+  "Ages lookup by canonical Astro-turn range; Shells turns<->Shells+turns formatting helper.",
+]
+out = [
+  "Seasonal context (SPEC-004), UI, lunar calendars, and lore month/day names (numeric only for now).",
+]
+
+[deliverables]
+files = [
+  "src: solar translator (the 3-calendar universal_data_translator)",
+  "src: Ages lookup and Shells formatting helpers",
+  "tests: round-trip and leap-rule tests with known-date fixtures",
+]
+tests = [
+  "pulse -> Fatunik -> pulse and pulse -> Terpin -> pulse round-trip to day resolution.",
+  "Fatunik leap: a 366-day year on the 4/100/400 rule; Terpin: a 397-day long year and the 396-day super-long year.",
+  "Fatunik sunrise day-boundary handled (the first 21,600 pulses belong to the prior Fatunik day).",
+  "Ages lookup returns the correct Age for sample Astro turns.",
+]
+
+[acceptance]
+items = [
+  "Round-trips consistent to day resolution for both solar calendars.",
+  "Leap arithmetic correct for Fatunik (4/100/400) and Terpin (132/4620).",
+  "Festival is month 1; days and years are 1-indexed and continuous.",
+  "The current day resolves to roughly Fatunik year 2,017 and Terpin year 2,271.",
+]
+
+[review]
+focus = [
+  "Leap edge cases: Fatunik century/400-year; Terpin 132 long year and 4620 super-long year.",
+  "Day-boundary offset (Fatunik sunrise vs Astro/Terpin midnight).",
+  "Reversibility and continuous numbering.",
+]
+smoke_test = "Convert a known Astro pulse to Fatunik and Terpin dates and back; confirm the current-day year counts."
+
+[notes]
+for_assistant = """
+Each calendar's epoch Astro-day is computed once as the civil day nearest its
+year-start event (Fatunik summer solstice, Terpin spring equinox); thereafter it
+is pure year-length arithmetic. Only Year 1 is season-anchored. Terpin's seasonal
+drift is emergent from the arithmetic, not a special mechanism.
+"""

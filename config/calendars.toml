@@ -1,0 +1,54 @@
+# Calendar definitions.
+#
+# epoch_astro_day: the 1-indexed Astro day on which Year 1 Day 1 of this
+#   calendar begins. Used by SPEC-003 translators; carried here so all
+#   calendar config lives together.
+#
+# day_start_offset: pulses past Astro midnight when the civil day starts.
+#   astro/terpin = 0 (midnight); fatunik = 21600 (sunrise, 6 hours).
+
+[astro]
+id               = "astro"
+epoch_astro_day  = 1
+day_start_offset = 0
+
+[fatunik]
+id               = "fatunik"
+# Summer solstice of AstroYear 254 — gives Fatunik ~2017 at story_now.
+epoch_astro_day  = 92498
+day_start_offset = 21600
+
+[fatunik.months]
+# Month 1 = Gleaming (the festival intercalary period); months 2-13 = 30 days.
+festival_name           = "Gleaming"
+festival_days_standard  = 5
+festival_days_leap      = 6
+regular_month_days      = 30
+regular_month_count     = 12
+
+[fatunik.leap]
+# Gregorian 4/100/400 rule applied to festival length (5 vs 6 days).
+cycle_short   = 4
+cycle_skip    = 100
+cycle_restore = 400
+
+[terpin]
+id               = "terpin"
+# Spring equinox of Year 1 = Astro Day 1 — gives Terpin ~2271 at story_now.
+epoch_astro_day  = 1
+day_start_offset = 0
+
+[terpin.months]
+# Month 1 = festival intercalary period; months 2-13 = 30 days.
+festival_name               = "festival"
+festival_days_standard      = 5
+festival_days_long          = 37
+festival_days_super_long    = 36
+regular_month_days          = 30
+regular_month_count         = 12
+
+[terpin.leap]
+# Long year (festival +32 days) every 132 turns;
+# super-long year (festival +31 days) instead of long at every 4620th turn.
+long_year_cycle       = 132
+super_long_year_cycle = 4620

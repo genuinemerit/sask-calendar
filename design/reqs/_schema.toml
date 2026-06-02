@@ -4,7 +4,7 @@ description = "Requirements document schema"
 
 [fields.id]
 required = true
-pattern  = "^REQ-(OPS|SEC)-\\d{3}$"
+pattern  = "^REQ-(FUN|OPS|SEC)-\\d{3}$"
 
 [fields.title]
 required = true

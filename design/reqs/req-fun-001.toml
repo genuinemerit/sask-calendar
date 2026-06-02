@@ -1,0 +1,12 @@
+id="REQ-FUN-001"
+title="Deterministic, pure computation"
+category="functional"
+priority="must"
+statement="Every astronomical and calendrical result must be a pure deterministic function of the canonical pulse and config, with no hidden state and no mutation of global state (e.g., no global RNG seeding)."
+rationale="A pure function over (pulse, config) can be tested in isolation, reproduced by anyone with the same inputs, and cached safely; side-effects or global state would break all three properties."
+acceptance=[
+  "Identical (pulse, config) inputs always produce identical outputs.",
+  "No function mutates global RNG or shared state; any seeded randomness uses a local generator.",
+]
+[links]
+dds=["DD-002"]

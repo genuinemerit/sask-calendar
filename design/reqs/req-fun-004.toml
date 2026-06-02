@@ -1,0 +1,13 @@
+id="REQ-FUN-004"
+title="Distinct co-occurrence predicates"
+category="functional"
+priority="must"
+statement="The engine provides two distinct predicates over a shared, configurable fuzzy tolerance window: co_fullness (N named moons within the full tolerance on the same night) and positional_conjunction (N bodies within an angular tolerance of the same apparent position)."
+rationale="Conflating 'all full at once' with 'same position in the sky' produces false results for either case; two named predicates make the distinction explicit and independently testable."
+acceptance=[
+  "A config of simultaneously-full moons triggers co_fullness without necessarily triggering positional_conjunction.",
+  "Bodies clustered in apparent position trigger positional_conjunction regardless of phase.",
+  "Tolerance windows are read from config.",
+]
+[links]
+dds=["DD-002"]

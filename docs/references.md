@@ -17,7 +17,7 @@
 ## Design document schemas
 
 - `design/decisions/_schema.toml` — DD schema (id pattern `DD-\d{4}`)
-- `design/reqs/_schema.toml` — REQ schema (id pattern `REQ-(OPS|SEC)-\d{3}`)
+- `design/reqs/_schema.toml` — REQ schema (id pattern `REQ-(FUN|OPS|SEC)-\d{3}`)
 - `design/specs/_schema.toml` — SPEC schema (id pattern `SPEC-\d{3}`)
 
 ## Standards

@@ -1,0 +1,58 @@
+id     = "SPEC-002"
+title  = "Configuration and pulse/day core"
+status = "draft"
+experiment_id = "baseline"
+
+[implements]
+requirements = ["REQ-FUN-001","REQ-FUN-002","REQ-OPS-006","REQ-OPS-008"]
+dds          = ["DD-002"]
+
+[scope]
+in = [
+  "Config meta-schemas for time constants, calendar definitions, season definitions, and the timeline/epochs.",
+  "Config loading and validation against those meta-schemas.",
+  "Signed pulse<->day math: day = floor(pulse/86400)+1, pulse-of-day, within-day pulse.",
+  "AstroYear orbital position as a normalized 0.0-1.0 value from a pulse (AstroYear = 31,556,926.08 pulses).",
+  "Per-calendar day_start_offset application (shift a pulse before flooring to a civil day).",
+  "Message-unit base conventions and translator-function scaffolding.",
+]
+out = [
+  "Calendar conversions (SPEC-003), seasonal context (SPEC-004), UI (SPEC-005).",
+  "Persistence/DB, and any moon/wanderer/star logic.",
+]
+
+[deliverables]
+files = [
+  "config: time-constant, calendar, season, and timeline configs with their meta-schemas",
+  "src: pulse/day core module",
+  "src: message-unit base + translator scaffolding",
+  "tests: core math and config validation",
+]
+tests = [
+  "day = floor(pulse/86400)+1 verified for positive, zero, and negative pulses (day 0 and negative days).",
+  "AstroYear orbital position stays in [0,1).",
+  "day_start_offset shifts day boundaries as expected.",
+  "Config validates for well-formed input and fails for malformed input.",
+]
+
+[acceptance]
+items = [
+  "Identical pulses yield identical results; no global state mutation.",
+  "Negative (pre-epoch) pulses produce correct day 0 and negative days.",
+  "All constants and calendar/season/timeline data come from config, none hardcoded.",
+  "Config validates against its meta-schemas.",
+]
+
+[review]
+focus = [
+  "Signed arithmetic at and around pulse 0 and negative values.",
+  "No hardcoded constants or domain data in code.",
+  "Config completeness for downstream SPECs.",
+]
+smoke_test = "Load config; compute day for several pulses including negatives; confirm orbital position stays in [0,1)."
+
+[notes]
+for_assistant = """
+The foundation every later SPEC builds on. Get the signed pulse/day math and the
+config-as-truth boundary right; everything else is arithmetic over these.
+"""

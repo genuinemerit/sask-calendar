@@ -1,5 +1,39 @@
 # Dev log
 
+## 2026-06-02 — SPEC-002: pulse/day core and config foundation
+
+**Design documents added** (DD-0002, DD-0003, REQ-FUN-001–005, REQ-OPS-006–009,
+SPEC-002–005, `docs/glossary.md`):
+
+- DD-0002 — calendar engine architecture: pure functions over pulse + config, astronomy/civil
+  separation, normalised [0,1) quantities, apparition model, message units
+- DD-0003 — presentation architecture: Flask/Jinja in-process, message-unit seam, API-ready
+- REQs and SPECs cover pulse core, solar calendars, seasons, and UI thin vertical slice
+
+**SPEC-002 implemented** — 46 tests, all pass:
+
+- `config/` — `time_constants.toml`, `calendars.toml` (astro, fatunik, terpin),
+  `seasons.toml`, `timeline.toml`
+- `src/sask/message.py` — frozen dataclasses: `PulseInfo`, `CalendarDate`, `SeasonInfo`
+- `src/sask/config_loader.py` — typed config dataclasses, `load_config()`, `ConfigError`
+- `src/sask/pulse.py` — `astro_day()`, `pulse_of_day()`, `orbital_position()`,
+  `civil_day()`, `pulse_info()`; translator stubs for SPEC-003
+- `tests/test_spec_002.py` — signed pulse arithmetic, orbital position, day-start offset,
+  config loading and validation
+- `pyproject.toml` — added `pythonpath = ["src"]` for pytest
+
+**Tooling:**
+
+- `scripts/` removed; `tools/pre-commit-check.sh` and `tools/run-tests.sh` added
+- `ruff` scope extended to `src/`; all 5 pre-commit checks pass
+- 60 tests total: 14 validate_specs + 46 SPEC-002
+
+Corrections applied during pre-commit: DD IDs fixed to 4-digit form; REQ schema
+extended with `FUN` category; `rationale` added to all 9 new REQ docs; glossary
+line lengths fixed.
+
+**Next:** SPEC-005 (Flask UI thin vertical slice), then SPEC-003 + SPEC-004.
+
 ## 2026-06-01 — SPEC-001: VM steps complete, SPEC-001 fully PASS
 
 Completed all manual VM steps from docs/vm-setup.md:

@@ -26,15 +26,32 @@ ruff --version
 
 ```text
 ansible/      future Ansible playbooks
+config/       TOML engine configuration (time constants, calendars, seasons, timeline)
 design/       TOML design docs (decisions/, reqs/, specs/)
 docs/         living documents and guides
 infra/        NixOS configuration for the dev VM
 resources/    reference data and assets
-scripts/      one-off utility scripts
 secrets/      local credentials — git-ignored except README.md and *.example
 src/          Python source (package: sask)
 tests/        pytest suites and test results
-tools/        developer tooling (validate_specs.py, ...)
+tools/        developer tooling (validate_specs.py, pre-commit-check.sh, run-tests.sh)
+```
+
+## Pre-commit checks
+
+Run before every commit; all checks must exit 0:
+
+```bash
+bash tools/pre-commit-check.sh
+```
+
+## Testing
+
+```bash
+bash tools/run-tests.sh                           # all tests, quiet
+bash tools/run-tests.sh -v                        # all tests, verbose
+bash tools/run-tests.sh --spec SPEC-002           # one spec, quiet
+bash tools/run-tests.sh --spec SPEC-002 -v --save # one spec, verbose, save results
 ```
 
 ## Design docs
@@ -44,12 +61,6 @@ Validate them with:
 
 ```bash
 python3 tools/validate_specs.py
-```
-
-Run the validator test suite:
-
-```bash
-pytest tests/test_validate_specs.py -v
 ```
 
 ## Development environment

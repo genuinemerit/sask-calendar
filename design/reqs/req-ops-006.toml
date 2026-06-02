@@ -1,0 +1,12 @@
+id="REQ-OPS-006"
+title="Domain and lore data externalized to config"
+category="operational"
+priority="must"
+statement="All bodies, calendars, seasons, stars, names, and lore are defined in config; engine functions contain no hardcoded domain or lore data."
+rationale="Hardcoded domain data makes the engine a closed system; config-as-source-of-truth allows the lore to evolve without code changes and makes all data independently reviewable."
+acceptance=[
+  "No season tables, body lists, star/house names, or periods are hardcoded in functions.",
+  "Changing a config value changes output with no code change.",
+]
+[links]
+dds=["DD-002"]

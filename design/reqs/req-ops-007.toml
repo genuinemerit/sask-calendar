@@ -1,0 +1,12 @@
+id="REQ-OPS-007"
+title="Separation of computed model from lore overlay"
+category="operational"
+priority="must"
+statement="The computed model is defined independently of lore; names, descriptions, and culture-specific calendars/observances are an overlay applied via translators, supporting multiple languages and cultures."
+rationale="Tying computation to any one culture's names makes multi-language support impossible; the overlay pattern keeps the math stable while the presentation varies freely."
+acceptance=[
+  "Swapping the lore overlay (e.g., another culture's names) changes presentation without changing computation.",
+  "No computation depends on a lore string.",
+]
+[links]
+dds=["DD-002"]

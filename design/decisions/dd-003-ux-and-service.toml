@@ -1,0 +1,65 @@
+id     = "DD-0003"
+title  = "Presentation and service architecture"
+status = "proposed"
+date   = "2026-06-02"
+
+[context]
+problem = """
+The calendar engine's results need to reach a person through a web page. The
+architecture must keep presentation cleanly separated from the engine, render
+results with minimal front-end complexity, and leave room for a later HTTP API
+or RPG-engine consumer without a rewrite.
+"""
+constraints = [
+  "Clean data / middleware / presentation separation; the engine must not depend on the web layer.",
+  "Minimal front end: server-rendered HTML only, no JavaScript, React, or complex templating.",
+  "A future back-office API / RPG engine should consume the same results.",
+  "Lean MVP: a thin vertical slice that is stable and buildable-on, not a house of cards.",
+]
+alternatives = [
+  "Fold presentation into the engine SPECs — rejected: breaks the layer separation.",
+  "Build an HTTP API now with a client against it — deferred: more than the MVP needs.",
+  "A JS/React SPA — rejected: contrary to the minimal-front-end goal.",
+]
+
+[decision]
+summary = """
+Presentation is a separate layer with its own SPEC, never inside the engine
+SPECs. The Flask UI consumes the engine in-process as a Python library, talking
+only through the message-unit seam (REQ-OPS-008); the engine never imports Flask.
+Pages are server-rendered Jinja with no JavaScript. The seam is shaped so an HTTP
+API, and later the RPG engine, can wrap the same calls without changing the
+engine (API-ready, not API-now). The UI ships first as a thin vertical slice: a
+single deployed page rendering a real engine result end-to-end, with a clean
+route/template/view-model structure so later views are additive. The deployed
+artifact is this Flask UI; CLI/log output is fine for tests. The hardened
+deploy/destroy/redeploy lifecycle remains a separate DD.
+"""
+rationale = """
+A separate presentation layer is the only way to honor the data/middleware/
+presentation boundary the project is built on. In-process-now with an API-ready
+seam keeps today lean while making the back-office hook an addition, not a
+rewrite. Server-rendered, no-JS Jinja is the minimal stable surface. A thin
+vertical slice proves the request -> engine -> message unit -> page -> deployed
+path early, while it is cheap to fix.
+"""
+
+[consequences]
+positive = [
+  "Engine stays presentation-free and independently testable.",
+  "The same message-unit seam serves the web UI now and an API/RPG engine later.",
+  "Deploy and end-to-end wiring are proven early via the thin slice.",
+  "Adding views is additive, not structural.",
+]
+negative = [
+  "Both consumers (UI now, API later) must keep to the message-unit contract.",
+  "Server-rendered no-JS limits client interactivity (acceptable for this MVP).",
+]
+followups = [
+  "SPEC: UI thin vertical slice.",
+  "DD: hardened DO deploy / destroy / redeploy lifecycle.",
+  "Later: HTTP API wrapping the same seam when an external consumer needs it.",
+]
+
+[links]
+requirements = ["REQ-OPS-007","REQ-OPS-008"]

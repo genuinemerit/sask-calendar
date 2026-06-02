@@ -1,0 +1,13 @@
+id="REQ-FUN-003"
+title="Synodic phase and visibility for orbiting bodies"
+category="functional"
+priority="must"
+statement="Moon and wanderer phase and visibility are computed from synodic position relative to Fatune, normalized 0.0-1.0 with circular math, from each body's sidereal period and epoch phase offset (synodic period derived using the AstroYear). Visibility is a 0.0-1.0 scalar (visible band 0.1-0.9), booleans derived by threshold. Eclipses require near-conjunction and proximity to an orbital node."
+rationale="Synodic position relative to the primary star is the only frame that makes phase and glare physically meaningful; normalisation to [0,1) lets circular math replace conditional branches."
+acceptance=[
+  "Known epoch offsets and periods produce the expected phase at a given pulse.",
+  "Visibility values lie in [0,1]; the invisible zone straddles the 0/1 wrap correctly.",
+  "An eclipse fires only when synodic position is near conjunction and latitude is near a node.",
+]
+[links]
+dds=["DD-002"]

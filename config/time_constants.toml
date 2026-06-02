@@ -1,0 +1,4 @@
+# Canonical time constants — invariants, never change.
+# AstroYear = 365.2422 days * 86400 pulses/day = 31,556,926.08 pulses.
+pulses_per_day = 86400
+astro_year_pulses = 31556926.08

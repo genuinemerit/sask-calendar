@@ -1,0 +1,58 @@
+id     = "SPEC-005"
+title  = "UI thin vertical slice (MVP presentation)"
+status = "draft"
+experiment_id = "baseline"
+
+[implements]
+requirements = ["REQ-OPS-007","REQ-OPS-008"]
+dds          = ["DD-003","DD-002"]
+
+[scope]
+in = [
+  "Minimal Flask app, server-rendered Jinja, no JavaScript.",
+  "In-process calls to the engine through the message-unit seam only; the UI never reaches engine internals and the engine never imports Flask.",
+  "One end-to-end page that takes a date/pulse input and renders a real engine result, starting from SPEC-002's core and enriched as SPEC-003/004 land.",
+  "Clean route / template / view-model structure (a presentation translator from message unit to view model) so later views are additive.",
+  "Deployable behind Caddy on the droplet, reusing the sask deploy pattern.",
+]
+out = [
+  "JavaScript, React, or complex templating.",
+  "The HTTP API itself (the seam is API-ready, not API-built) and the RPG-engine hook.",
+  "Feature breadth beyond the thin slice (added as engine SPECs complete).",
+]
+
+[deliverables]
+files = [
+  "src: Flask app (routes) and minimal Jinja templates",
+  "src: presentation translator (message unit -> view model)",
+  "tests: HTTP smoke and layer-purity tests",
+]
+tests = [
+  "The page returns 200 and contains the expected rendered result.",
+  "Rendered HTML contains no script tags (no JavaScript).",
+  "The UI imports only the engine's message-unit interface; the engine has no Flask import.",
+]
+
+[acceptance]
+items = [
+  "A deployed page renders a real engine result end-to-end, reachable on the droplet.",
+  "No JavaScript appears in the output.",
+  "The engine is called in-process via message units, with no presentation logic in the engine.",
+  "Adding a new view is additive given the route/template/view-model structure.",
+]
+
+[review]
+focus = [
+  "Layer purity: the message-unit seam is the only contact point between UI and engine.",
+  "No JavaScript; minimal templates.",
+  "Extensibility of the structure (stable foundation, not a house of cards).",
+]
+smoke_test = "Hit the deployed page and confirm it renders a real result with no JavaScript."
+
+[notes]
+for_assistant = """
+Thin but stable. Establish the route/template/translator structure cleanly so
+later views drop in additively. Consume the engine only through message units,
+and shape the calls so an HTTP API could wrap the same seam later (API-ready, not
+API-now). The deployed artifact is this UI.
+"""

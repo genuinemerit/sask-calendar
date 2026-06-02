@@ -10,11 +10,17 @@
 
 ## Before every commit
 
-Run all of the following; every check must exit 0 before staging:
+Run the pre-commit script; every check must exit 0 before staging:
 
 ```bash
-ruff check tools/ tests/
-ruff format --check tools/ tests/
+bash tools/pre-commit-check.sh
+```
+
+The script runs, in order:
+
+```bash
+ruff check tools/ tests/ src/
+ruff format --check tools/ tests/ src/
 nix develop --command .venv/bin/pymarkdown --config .pymarkdown scan README.md CLAUDE.md docs/ tests/results/ secrets/README.md
 python3 tools/validate_specs.py
 .venv/bin/pytest tests/test_validate_specs.py -q
