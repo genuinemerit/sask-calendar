@@ -157,32 +157,35 @@ def test_gavor_fraction_at_half_year():
 
 
 def test_moon_synodic_new_moon():
-    """Moon half-orbit ahead of Gavor → conjunction → synodic = 0."""
-    # gavor_frac = 0.1, moon_sidereal = gavor + 0.5 = 0.6 → syn = (0.6-0.1+0.5)%1 = 0
-    assert _moon_synodic(0.6, 0.1) == pytest.approx(0.0, abs=1e-9)
+    """Moon at same ecliptic lon as Fatune → conjunction → synodic = 0."""
+    # Fatune lon = gavor_frac * 360. New moon: moon_sid == gavor_sid.
+    # syn = (0.3 - 0.3) % 1.0 = 0
+    assert _moon_synodic(0.3, 0.3) == pytest.approx(0.0, abs=1e-9)
 
 
 def test_moon_synodic_full_moon():
-    """Moon aligned with Gavor → opposition → synodic = 0.5."""
-    assert _moon_synodic(0.3, 0.3) == pytest.approx(0.5, abs=1e-9)
+    """Moon opposite Fatune → opposition → synodic = 0.5."""
+    # Full moon: moon_sid = gavor_sid + 0.5. syn = (0.8 - 0.3) % 1.0 = 0.5
+    assert _moon_synodic(0.8, 0.3) == pytest.approx(0.5, abs=1e-9)
 
 
 def test_moon_synodic_quarter():
-    assert _moon_synodic(0.5, 0.25) == pytest.approx(0.75, abs=1e-9)
+    # syn = (0.5 - 0.25) % 1.0 = 0.25
+    assert _moon_synodic(0.5, 0.25) == pytest.approx(0.25, abs=1e-9)
 
 
 def test_planet_synodic_conjunction():
     """Planet in Fatune's direction from Gavor → conjunction → synodic = 0."""
-    # Gavor at frac=0 → heliocentric lon=0 → Fatune appears at 180° from Gavor.
-    # Planet at geo_lon=180° is in the same direction as Fatune → conjunction.
-    assert _planet_synodic(180.0, 0.0) == pytest.approx(0.0, abs=1e-9)
+    # Fatune geocentric lon = gavor_frac * 360 = 0° at gavor_frac=0.
+    # Planet at geo_lon=0° is in Fatune's direction → conjunction → syn=0.
+    assert _planet_synodic(0.0, 0.0) == pytest.approx(0.0, abs=1e-9)
 
 
 def test_planet_synodic_opposition():
     """Planet opposite Fatune from Gavor → opposition → synodic = 0.5."""
-    # Gavor frac=0 → Fatune at 180°; planet at geo_lon=0° is opposite → opposition.
-    # ((0 - 180) / 360) % 1.0 = (-0.5) % 1.0 = 0.5
-    assert _planet_synodic(0.0, 0.0) == pytest.approx(0.5, abs=1e-9)
+    # Fatune at 0° when gavor_frac=0; planet at 180° is opposite → syn=0.5.
+    # ((180 - 0) / 360) % 1.0 = 0.5
+    assert _planet_synodic(180.0, 0.0) == pytest.approx(0.5, abs=1e-9)
 
 
 # ── Illuminated fraction ───────────────────────────────────────────────────────

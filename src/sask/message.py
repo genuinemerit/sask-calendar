@@ -66,6 +66,29 @@ class BodyState:
     brightness: float  # albedo × illuminated_fraction × apparent_size (relative)
 
 
+@dataclass(frozen=True)
+class SkyPosition:
+    """Local-sky horizontal coordinates for a body at a given pulse (SPEC-008).
+
+    Produced by the ecliptic → equatorial → horizontal transform.
+    All angles in degrees; all times in pulses.
+    Azimuth convention: N=0, E=90, S=180, W=270.
+    """
+
+    name: str
+    body_type: str  # "moon" | "planet" | "star" (Fatune)
+    declination_deg: float  # equatorial declination (-90, 90)
+    right_ascension_deg: float  # equatorial RA [0, 360)
+    altitude_deg: float  # horizontal altitude (-90, 90); + = above horizon
+    azimuth_deg: float  # horizontal azimuth [0, 360); N=0, E=90
+    above_horizon: bool
+    is_circumpolar: bool  # True: never sets; rise_pulse/set_pulse are None
+    is_never_rising: bool  # True: never rises; rise_pulse/set_pulse are None
+    transit_pulse: int  # pulse of upper meridian crossing (always defined)
+    rise_pulse: int | None  # None when circumpolar or never-rising
+    set_pulse: int | None  # None when circumpolar or never-rising
+
+
 def validate(unit: object) -> list[str]:
     """Return a list of field-level errors for a message-unit dataclass.
 

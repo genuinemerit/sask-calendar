@@ -97,9 +97,15 @@ def _planet_coords(
     Uses heliocentric Cartesian positions for Gavor (semi_major_axis=1.0)
     and the planet, then subtracts to get the geocentric vector.  Circular
     orbits only; storytelling-grade approximation.
+
+    Ecliptic frame convention: the vernal equinox (gavor_frac=0, start of
+    Greening) is at ecliptic longitude 0°.  Gavor's heliocentric position
+    is therefore at (gavor_frac + 0.5) * 2π — opposite the direction of
+    Fatune from Gavor — so that Fatune's geocentric lon = gavor_frac * 360°
+    and declination peaks at +obliquity at Blazing (gavor_frac=0.25).
     """
     theta_p = 2.0 * math.pi * planet_frac
-    theta_g = 2.0 * math.pi * gavor_frac
+    theta_g = 2.0 * math.pi * (gavor_frac + 0.5)
     px = semi_major_axis * math.cos(theta_p)
     py = semi_major_axis * math.sin(theta_p)
     gx = math.cos(theta_g)
@@ -113,20 +119,25 @@ def _planet_coords(
 
 
 def _moon_synodic(moon_sidereal: float, gavor_sidereal: float) -> float:
-    """Synodic fraction for a moon: 0 = new (conjunction), 0.5 = full (opposition)."""
-    return (moon_sidereal - gavor_sidereal + 0.5) % 1.0
+    """Synodic fraction for a moon: 0 = new (conjunction), 0.5 = full (opposition).
+
+    In the ecliptic frame, Fatune appears at gavor_frac * 360°.  A moon at the
+    same ecliptic longitude as Fatune is at new moon; a moon at the opposite
+    longitude is at full moon.  Synodic fraction = (moon_sid - gavor_sid) % 1.0
+    places new moon (moon aligned with Fatune) at 0 and full moon at 0.5.
+    """
+    return (moon_sidereal - gavor_sidereal) % 1.0
 
 
 def _planet_synodic(geo_lon_deg: float, gavor_frac: float) -> float:
     """Synodic fraction for a planet: 0 = conjunction, 0.5 = opposition.
 
-    Fatune's apparent direction from Gavor is (gavor_frac + 0.5) * 360°
-    (opposite Gavor's heliocentric position).  The synodic fraction is the
-    angular separation of the planet from Fatune's direction, normalised to
-    [0.0, 1.0): 0 = planet in Fatune's direction (conjunction), 0.5 = planet
-    opposite Fatune (opposition).
+    Fatune's geocentric ecliptic longitude = gavor_frac * 360°.  Synodic
+    fraction is the angular separation of the planet from Fatune, normalised
+    to [0.0, 1.0): 0 = planet in Fatune's direction (conjunction), 0.5 =
+    planet opposite Fatune (opposition).
     """
-    fatune_dir_deg = ((gavor_frac + 0.5) * 360.0) % 360.0
+    fatune_dir_deg = (gavor_frac * 360.0) % 360.0
     return ((geo_lon_deg - fatune_dir_deg) / 360.0) % 1.0
 
 
