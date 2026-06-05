@@ -37,12 +37,31 @@ tests/        pytest suites and test results
 tools/        developer tooling (validate_specs.py, pre-commit-check.sh, run-tests.sh)
 ```
 
-## Running the web app
+## Web app
 
-Install dependencies into the project venv (once), then run Flask's dev server:
+Three browser pages are available. Open an SSH tunnel from the host
+(`ssh -L 5000:localhost:5000 sask-dev`), start the server on the VM, then
+navigate to `http://localhost:5000/` in a host browser.
+
+| Page | Description |
+|---|---|
+| `/` | Pulse lookup — enter a pulse and see Astro day, time of day, orbital position |
+| `/moons` | Moons sky view — phase, illumination, eclipse, altitude/azimuth, rise/transit/set for all 8 moons |
+| `/planets` | Planets sky view — same columns plus colour, brightness, and telescopic detail for all 7 planets |
+
+All three pages accept four equivalent input forms: pulse number, Astro day,
+Fatunik date, or Terpin date. After any query all four input fields are
+cross-populated with the resolved equivalents.
+
+**Start the server:**
 
 ```bash
-.venv/bin/pip install flask gunicorn
+bash tools/start_web.sh
+```
+
+Or manually:
+
+```bash
 PYTHONPATH=src .venv/bin/flask --app sask.web run
 ```
 
@@ -50,6 +69,12 @@ Or with gunicorn:
 
 ```bash
 PYTHONPATH=src .venv/bin/gunicorn wsgi:app
+```
+
+**Install web dependencies (once):**
+
+```bash
+.venv/bin/pip install 'flask>=3.0' 'gunicorn>=22.0'
 ```
 
 ## Pre-commit checks

@@ -1,5 +1,121 @@
 # Dev log
 
+## 2026-06-05 — SPEC-009 UAT: all tests pass; refactoring complete
+
+**SPEC-009 UAT complete** — all 15 test cases pass (TC-009-01 through TC-009-13,
+plus TC-009-07b and TC-009-11c added during the session). 298 tests total.
+
+**Spec corrections surfaced by UAT:**
+
+- *Endor eclipse (TC-009-03):* At pulse 0, Endor's synodic fraction (0.4778) is
+  0.022 from opposition — within the 0.03 syzygy tolerance — and its ecliptic
+  latitude is ≈ 0.27°, within the 0.8° node tolerance. Both conditions met →
+  Lunar eclipse correctly fires. The original spec said "no eclipse"; the spec
+  was wrong.
+- *Zehembra illumination (TC-009-03):* `(1 − cos(2π × 0.823134)) / 2 ≈ 27.8%`,
+  not 29.3% as the spec stated. The test doc contained a hand-calculation error.
+
+**Bug fix — empty form fields (TC-009-06):**
+
+All three fieldsets shared one `<form>`, so clicking any Query button submitted
+all fields. Empty fields arrived as `""` (not absent), causing `float("")` to
+raise ValueError and return an error instead of falling through to the intended
+input type. Fixed with `or None` on every `request.args.get()` call in
+`_resolve_pulse`.
+
+**Input improvements:**
+
+- Forms split into **four separate `<form>` elements** (one per fieldset); each
+  Query button now submits only its own fields.
+- **Terpin date input** added to `/moons` and `/planets` (priority chain: pulse
+  \> astro\_day \> fatunik date \> terpin date).
+- After any successful query, **all four input groups are cross-populated** with
+  equivalent values (pulse, Astro day, Fatunik date, Terpin date) so the user
+  can immediately re-query from any calendar system.
+- Meta line above the results table simplified to show only Fatune horizon
+  status; date equivalents are now visible in the populated input fields.
+
+**Display improvements:**
+
+- Removed duplicate illumination % from the Visible column (was shown in both
+  Lit and Visible; kept only in Lit).
+- Planets table restructured to a **two-row layout** per planet: main row
+  (11 columns: name, colour, phase, lit, visible, altitude, azimuth,
+  rise/transit/set, brightness) + light-grey detail row (spans full width:
+  "Through a glass" | "Notes"). Eliminates the compressed Notes column of the
+  previous 13-column single-row layout.
+- "Through a glass" empty state now distinguishes: *"Appears as a plain disc;
+  no notable features."* (visible, no rings/moons) vs *"Not currently
+  visible."* (lost in glare). Previously showed a bare `—`.
+
+**Design note — short-month date overflow (future consideration):**
+
+Entering a day beyond the festival month's actual length (e.g., month=1, day=10
+on a standard Fatunik year where the festival has only 5 days) silently overflows
+into month 2. This is arithmetically consistent — both `fatunik_to_pulse` and
+`terpin_to_pulse` use the correct festival-day count for the given year type
+(standard / long / super-long). Marked for a future spec: add explicit validation
+that rejects out-of-range festival-month day values with a user-visible error.
+
+---
+
+## 2026-06-04 — SPEC-006 through SPEC-009: orbital mechanics and sky UI
+
+**SPEC-006** (26 tests) — Frozen orbital initial conditions committed to
+`config/body_data.toml` for all 8 moons and 7 planets: epoch offset, sidereal
+period, inclination, node, diameter, albedo, distance/semi-major axis.
+Design docs DD-0004, REQ-FUN-010–014, SPEC-006–009 added.
+
+**SPEC-007** (42 tests) — Body kinematics engine (`src/sask/bodies.py`):
+sidereal/synodic fractions, ecliptic coordinates, illuminated fraction
+(`(1−cosθ)/2` for moons; law-of-cosines phase angle for planets), visibility
+scalar, eclipse detection (node-gated syzygy within configurable tolerances),
+`BodyState` message unit, `all_body_states()`.
+
+**SPEC-008** (26 tests) — Local-sky position engine (`src/sask/sky.py`):
+ecliptic→equatorial→horizontal coordinate transform, rise/transit/set pulse
+arithmetic, circumpolar/never-rising edge cases, Fatune sky position,
+`SkyPosition` message unit, `all_sky_positions()`.
+
+**SPEC-009** (48 tests) — Web UI for `/moons` and `/planets` pages:
+`MoonViewModel`, `PlanetViewModel` and translators in `translator.py`;
+routes in `routes.py`; Jinja templates (`moons.html`, `planets.html`);
+eclipse row highlighting (solar = amber, lunar = blue); lore overlay
+(apparent colour, ring description, visible moons, notes) layered at
+the route, not in the engine.
+
+**Calendar epoch corrections (same session):**
+
+- Astro epoch: year 0, spring equinox, pulse 0 (midnight).
+- Fatunik epoch: Astro year 1531, summer solstice, 6 AM → `epoch_astro_day = 559278`.
+- Terpin epoch: Astro year 1043, spring equinox → `epoch_astro_day = 380948`.
+- `story_now` locked to Astro year 3313, spring equinox; pulse = 104548096103
+  → Fatunik T1782 M10 D29; Terpin T2271 M2 D2; season: Stillness / near Green Day.
+
+252 tests total at end of this session.
+
+---
+
+## 2026-06-02 — SPEC-003 + SPEC-004: calendar conversions and seasonal context
+
+**SPEC-003** (59 tests) — Astro↔Fatunik and Astro↔Terpin translators in
+`src/sask/pulse.py`: `astro_to_fatunik`, `fatunik_to_pulse`,
+`fatunik_turns_to_pulse_range`, `astro_to_terpin`, `terpin_to_pulse`,
+`terpin_shell_of_turn`, `terpin_turn_within_shell`. Leap arithmetic for both
+calendars (Fatunik long/super-long years; Terpin long years).
+
+**SPEC-004** (25 tests) — Seasonal context (`src/sask/season.py`):
+`SeasonInfo` message unit, `season_info()` — maps orbital position to one of
+four seasons (Greening, Blazing, Harvest, Stillness) and detects proximity to
+solstice/equinox events (Green Day, Blaze Day, Golden Day, Still Day).
+
+UAT run as a Python REPL session on the VM; all TC-003-xx and TC-004-xx pass.
+Results recorded in `tests/results/user_tests/`.
+
+157 tests total (14 validate\_specs + 46 SPEC-002 + 13 SPEC-005 + 59 SPEC-003 + 25 SPEC-004).
+
+---
+
 ## 2026-06-02 — SPEC-005: Flask UI thin vertical slice
 
 **SPEC-005 implemented** — 12 tests, all pass (72 total):

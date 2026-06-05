@@ -10,23 +10,46 @@
     <legend>Enter pulse</legend>
     <label for="pulse">Pulse</label>
     <input type="number" id="pulse" name="pulse" step="any"
-           value="{{ queried_pulse if queried_pulse is not none else default_pulse }}">
+           value="{{ queried_pulse if queried_pulse is not none else '' }}">
     <button type="submit">Query</button>
   </fieldset>
+</form>
+<form method="get" action="/planets">
   <fieldset>
     <legend>Or Astro day</legend>
     <label for="astro_day">Astro Day</label>
-    <input type="number" id="astro_day" name="astro_day" step="1" min="1">
+    <input type="number" id="astro_day" name="astro_day" step="1" min="1"
+           value="{{ queried_astro_day if queried_astro_day is not none else '' }}">
     <button type="submit">Query</button>
   </fieldset>
+</form>
+<form method="get" action="/planets">
   <fieldset>
     <legend>Or Fatunik date</legend>
     <label for="fatunik_year">Year</label>
-    <input type="number" id="fatunik_year" name="fatunik_year" step="1" style="width:6rem">
+    <input type="number" id="fatunik_year" name="fatunik_year" step="1" style="width:6rem"
+           value="{{ fatunik_date.year if fatunik_date else '' }}">
     <label for="fatunik_month" style="width:5rem; margin-left:.5rem">Month</label>
-    <input type="number" id="fatunik_month" name="fatunik_month" min="1" max="12" step="1" style="width:4rem">
+    <input type="number" id="fatunik_month" name="fatunik_month" min="1" max="12" step="1" style="width:4rem"
+           value="{{ fatunik_date.month if fatunik_date else '' }}">
     <label for="fatunik_day" style="width:4rem; margin-left:.5rem">Day</label>
-    <input type="number" id="fatunik_day" name="fatunik_day" min="1" max="30" step="1" style="width:4rem">
+    <input type="number" id="fatunik_day" name="fatunik_day" min="1" max="30" step="1" style="width:4rem"
+           value="{{ fatunik_date.day if fatunik_date else '' }}">
+    <button type="submit">Query</button>
+  </fieldset>
+</form>
+<form method="get" action="/planets">
+  <fieldset>
+    <legend>Or Terpin date</legend>
+    <label for="terpin_year">Year</label>
+    <input type="number" id="terpin_year" name="terpin_year" step="1" style="width:6rem"
+           value="{{ terpin_date.year if terpin_date else '' }}">
+    <label for="terpin_month" style="width:5rem; margin-left:.5rem">Month</label>
+    <input type="number" id="terpin_month" name="terpin_month" min="1" max="13" step="1" style="width:4rem"
+           value="{{ terpin_date.month if terpin_date else '' }}">
+    <label for="terpin_day" style="width:4rem; margin-left:.5rem">Day</label>
+    <input type="number" id="terpin_day" name="terpin_day" min="1" max="30" step="1" style="width:4rem"
+           value="{{ terpin_date.day if terpin_date else '' }}">
     <button type="submit">Query</button>
   </fieldset>
 </form>
@@ -37,11 +60,8 @@
 
 {% if planet_views %}
   <p class="meta">
-    Pulse {{ queried_pulse }}
-    {% if fatunik_date %} — Fatunik T{{ fatunik_date.year }} M{{ fatunik_date.month }} D{{ fatunik_date.day }}{% endif %}
-    {% if terpin_date %} — Terpin T{{ terpin_date.year }} M{{ terpin_date.month }} D{{ terpin_date.day }}{% endif %}
     {% if fatune_pos %}
-      — Fatune {{ "above" if fatune_pos.above_horizon else "below" }} horizon
+      Fatune {{ "above" if fatune_pos.above_horizon else "below" }} horizon
       ({{ fatune_pos.altitude_deg | round(1) }}°)
     {% endif %}
   </p>
@@ -60,8 +80,6 @@
         <th>Transit</th>
         <th>Set</th>
         <th>Brightness</th>
-        <th>Through a glass</th>
-        <th>Notes</th>
       </tr>
     </thead>
     <tbody>
@@ -71,19 +89,24 @@
         <td>{{ p.apparent_color }}</td>
         <td>{{ p.phase_name }}</td>
         <td>{{ p.illuminated_pct }}</td>
-        <td>{{ "Yes" if p.is_visible else "No" }} ({{ p.visibility_pct }})</td>
+        <td>{{ "Yes" if p.is_visible else "No" }}</td>
         <td>{{ p.altitude }}</td>
         <td>{{ p.azimuth }}</td>
         <td>{{ p.rise_pulse }}</td>
         <td>{{ p.transit_pulse }}</td>
         <td>{{ p.set_pulse }}</td>
         <td>{{ p.brightness_rel }}</td>
-        <td>
-          {%- if p.rings != "None" %}Rings: {{ p.rings }}. {% endif -%}
-          {%- if p.visible_moons != "0" %}{{ p.visible_moons }} moon(s). {% endif -%}
-          Phase: {{ p.phase_name }}.
+      </tr>
+      <tr class="detail-row">
+        <td colspan="5"><strong>Through a glass:</strong>
+          {%- if p.rings != "None" %} Rings: {{ p.rings }}.{% endif -%}
+          {%- if p.visible_moons != "0" %} {{ p.visible_moons }} moon(s) visible.{% endif -%}
+          {%- if p.rings == "None" and p.visible_moons == "0" -%}
+            {%- if p.is_visible %} Appears as a plain disc; no notable features.
+            {%- else %} Not currently visible.{% endif -%}
+          {%- endif -%}
         </td>
-        <td>{{ p.notes }}</td>
+        <td colspan="6"><strong>Notes:</strong> {{ p.notes }}</td>
       </tr>
       {% endfor %}
     </tbody>

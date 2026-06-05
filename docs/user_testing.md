@@ -405,8 +405,8 @@ http://localhost:5000/planets
 **Pass criteria:**
 
 - HTTP 200; page title contains "Saskan Calendar — Moons".
-- Three input sections are rendered: **Enter pulse**, **Or Astro day**,
-  and **Or Fatunik date**.
+- Four input sections are rendered: **Enter pulse**, **Or Astro day**,
+  **Or Fatunik date**, and **Or Terpin date**.
 - No moon table is rendered.
 - No error message is shown.
 - No `<script>` tag appears anywhere in the page source.
@@ -419,13 +419,15 @@ http://localhost:5000/planets
 
 **Pass criteria:**
 
-- The metadata line above the table shows:
-  - Pulse `0`
-  - Fatunik **T-1531 M10 D29** (pre-epoch: Fatunik calendar starts at Astro year 1531)
-  - Terpin **T-1042 M1 D4** (pre-epoch: Terpin calendar starts at Astro year 1043)
-  - Fatune **above** horizon (at pulse 0, Fatune transits the meridian at
-    altitude **+54.5°** and azimuth **180.0° S** — it is exactly noon for
-    the canonical observer)
+- The metadata line above the table shows only:
+  Fatune **above** horizon (at pulse 0, Fatune transits the meridian at
+  altitude **+54.5°** — it is exactly noon for the canonical observer)
+
+- All four input fields are cross-populated with the resolved values:
+  - Pulse field: `0`
+  - Astro Day field: `1`
+  - Fatunik date: **T-1531 M10 D29** (pre-epoch)
+  - Terpin date: **T-1042 M1 D4** (pre-epoch)
 
 - The moons table contains exactly **8 rows**, one per moon, in this order:
   Endor, Sella, Lelako, Jembor, Calumbra, Zehembra, Shunna, Kanka.
@@ -433,11 +435,13 @@ http://localhost:5000/planets
 - **Endor** at pulse 0 (epoch offset 0.477754):
   - Synodic fraction ≈ 0.478 → phase name **Full** (range 0.47–0.53)
   - Illuminated ≈ **99.5%**
-  - No eclipse (latitude not near a node at this pulse)
+  - Eclipse: **Lunar** — synodic fraction is 0.022 from 0.5 (within the
+    0.03 tolerance); ecliptic latitude ≈ 0.27° (within the 0.8° node
+    tolerance). Row background is light blue.
 
 - **Zehembra** at pulse 0 (epoch offset 0.823134):
   - Synodic fraction ≈ 0.823 → phase name **Waning Crescent**
-  - Illuminated ≈ **29.3%**
+  - Illuminated ≈ **27.8%** — formula: (1 − cos(2π × 0.823134)) / 2 ≈ 0.278
   - Eclipse column shows **—** (near-node check will rarely fire at an
     arbitrary pulse)
 
@@ -461,7 +465,7 @@ http://localhost:5000/planets
 - Each row shows a phase name (one of: New, Waxing Crescent, First Quarter,
   Waxing Gibbous, Full, Waning Gibbous, Last Quarter, Waning Crescent).
 - Illuminated % is consistent with the phase name (Full ≈ 100%, New ≈ 0%).
-- Visibility column shows either "Yes" or "No" with a percentage.
+- Visibility column shows either "Yes" or "No".
 - Altitude values are in the range −90° to +90°; azimuth in 0° to 360° with
   a cardinal direction suffix.
 - Rise and Set show pulse integers (or "circumpolar" / "never rises" for
@@ -488,13 +492,14 @@ inclination makes it the most frequent candidate).
 #### TC-009-06 — Moons — Astro day input
 
 **Action:** On the `/moons` page, enter **1** in the "Or Astro day" field
-and click **Query**.
+and click its **Query** button (each input group is a separate form, so
+only the Astro Day value is submitted).
 
 **Pass criteria:**
 
 - The page re-renders with `?astro_day=1` in the URL.
 - Results are identical to `?pulse=0` (Astro day 1 corresponds to pulse 0).
-- All 8 moons are listed; metadata shows Fatunik Y1 M1 D1.
+- All 8 moons are listed; metadata shows Fatunik T-1531 M10 D29 (pre-epoch).
 
 ---
 
@@ -512,6 +517,20 @@ Day **29** and click **Query**.
 
 ---
 
+#### TC-009-07b — Moons — Terpin date input
+
+**Action:** In the "Or Terpin date" section, enter Year **2271**, Month **2**,
+Day **2** and click **Query**.
+
+**Pass criteria:**
+
+- The page re-renders with the three Terpin parameters in the URL.
+- Results match `?pulse=104548096103` (Terpin T2271 M2 D2 = story_now_pulse).
+- Metadata shows Fatunik T1782 M10 D29 and Terpin T2271 M2 D2.
+- All 8 moons are listed.
+
+---
+
 #### TC-009-08 — Planets page loads without a pulse query
 
 **Action:** Navigate to `http://localhost:5000/planets` with no query parameters.
@@ -519,7 +538,7 @@ Day **29** and click **Query**.
 **Pass criteria:**
 
 - HTTP 200; page title contains "Saskan Calendar — Planets".
-- Three input sections are rendered (same layout as the moons page).
+- Four input sections are rendered (same layout as the moons page).
 - No planet table is rendered.
 - No `<script>` tag in the page source.
 
@@ -531,20 +550,23 @@ Day **29** and click **Query**.
 
 **Pass criteria:**
 
-- Metadata line shows Pulse 0, Fatunik Y1 M1 D1, Fatune above horizon.
+- Metadata line shows only: Fatune above horizon (altitude ≈ +54.5°).
+- All four input fields are cross-populated: Pulse=0, Astro Day=1,
+  Fatunik T-1531 M10 D29, Terpin T-1042 M1 D4.
 
-- The planets table contains exactly **7 rows** in this order:
+- The planets table contains exactly **7 planet entries** (14 HTML rows —
+  each planet occupies a main row and a detail row) in this order:
   Aesthra, Lethra, Beyarus, Dramond, Thurnak, Zelven, Kreetha.
 
 - **Beyarus** Color column shows **Brilliant silver-white**.
 
-- **Kreetha** "Through a glass" column contains ring description text
-  (e.g. "Rings: Prominent…") and "1 moon(s)".
+- **Kreetha** detail row "Through a glass" section shows ring description
+  text (e.g. "Rings: Prominent…") and "1 moon(s) visible.".
 
-- **Zelven** "Through a glass" column shows **4 moon(s)**.
+- **Zelven** detail row "Through a glass" section shows **4 moon(s) visible.**
 
 - **Aesthra** and **Lethra** (inner planets, semi-major axis 0.387):
-  - Visibility shows "No (0.0%)" — inner planets remain near Fatune's
+  - Visibility shows "No" — inner planets remain near Fatune's
     glare and are typically invisible in this simplified model.
   - Phase varies between crescent and near-full depending on their
     position in the synodic cycle.
@@ -561,25 +583,32 @@ Day **29** and click **Query**.
 
 **Pass criteria:**
 
-- All 7 planet rows are present.
-- Each row shows color, phase name, illuminated %, visibility, altitude,
-  azimuth, rise/transit/set pulses, relative brightness, and a "Through a
-  glass" column with telescopic notes.
-- Notes column shows the body's lore description text (e.g. Thurnak:
-  "The red wanderer; noticeably bright at opposition…").
-- Metadata shows Fatunik T1782 M10 D29 and Terpin T2271 M2 D2.
+- All 7 planet entries are present (14 HTML rows total).
+- Each main row shows: color, phase name, illuminated %, visibility,
+  altitude, azimuth, rise/transit/set pulses, relative brightness.
+- Each detail row shows "Through a glass" (rings/moons) and "Notes"
+  (lore text, e.g. Thurnak: "The red wanderer; noticeably bright at
+  opposition…").
+- All four input fields are cross-populated with story_now values.
+- Metadata line shows only Fatune above/below horizon with altitude.
 
 ---
 
-#### TC-009-11 — Planets — Astro day and Fatunik date inputs
+#### TC-009-11 — Planets — Astro day, Fatunik date, and Terpin date inputs
 
 **Action (a):** On `/planets`, enter Astro day **1** and query.
 
-**Pass criteria (a):** Same result as `?pulse=0`; 7 planets shown; Fatunik Y1 M1 D1 in metadata.
+**Pass criteria (a):** Same result as `?pulse=0`; 7 planet entries shown;
+input fields cross-populated with Pulse=0, Astro Day=1, Fatunik T-1531 M10 D29, Terpin T-1042 M1 D4.
 
 **Action (b):** On `/planets`, enter Fatunik year **1**, month **1**, day **1** and query.
 
-**Pass criteria (b):** Same result as (a); metadata confirms Y1 M1 D1.
+**Pass criteria (b):** Different from (a) — Fatunik T1 M1 D1 is Astro year 1531, not pulse 0. Metadata confirms T1 M1 D1.
+
+**Action (c):** On `/planets`, enter Terpin year **2271**, month **2**, day **2** and query.
+
+**Pass criteria (c):** Results match `?pulse=104548096103` (Terpin T2271 M2 D2 = story_now_pulse).
+Metadata shows Fatunik T1782 M10 D29 and Terpin T2271 M2 D2. All 7 planets shown.
 
 ---
 
@@ -612,22 +641,33 @@ view the HTML source (Ctrl+U or browser DevTools → Sources) for each page.
 ### SPEC-009 Results — (to be completed after testing)
 
 Tested on `sask-dev` via SSH tunnel.
+See screenshot and other notes in
+  /tests/results/user_tests/SPEC-009_user_test_results.odt
 
 | TC | Result | Notes |
 |---|---|---|
-| TC-009-01 | | |
-| TC-009-02 | | |
-| TC-009-03 | | |
-| TC-009-04 | | |
-| TC-009-05 | | |
-| TC-009-06 | | |
-| TC-009-07 | | |
-| TC-009-08 | | |
-| TC-009-09 | | |
-| TC-009-10 | | |
-| TC-009-11 | | |
-| TC-009-12 | | |
-| TC-009-13 | | |
+| TC-009-01 | Pass | See screenshots |
+| TC-009-02 | Pass | See screenshots |
+| TC-009-03 | Pass | Spec corrected: Endor Lunar; Zehembra 27.8%; Visible column simplified. |
+| TC-009-04 | Pass | |
+| TC-009-05 | Pass | Pulse 0 shows an eclipse |
+| TC-009-06 | Pass | Bug fixed: empty form fields now treated as absent; pulse field no longer pre-filled. |
+| TC-009-07 | Pass | |
+| TC-009-07b | Pass | Terpin date input (new). |
+| TC-009-08 | Pass | |
+| TC-009-09 | Pass | |
+| TC-009-10 | Pass | |
+| TC-009-11 | Pass | |
+| TC-009-11c | Pass | Terpin date input for planets (new). |
+| TC-009-12 | Pass | but string input not allowed |
+| TC-009-13 | Pass | |
+
+Additional notes:
+
+- A test using Astro Day input on Moons page = 6000
+  shows a result with one New moon. The new moon row
+  background color is set to yellow. Very nice!
+- The description of planets "through a glass" is great.
 
 ---
 

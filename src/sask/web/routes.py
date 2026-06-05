@@ -13,7 +13,13 @@ from flask import Blueprint, current_app, render_template, request
 from ..bodies import all_body_states
 from ..config_loader import AppConfig
 from ..message import CalendarDate, PulseInfo
-from ..pulse import astro_to_fatunik, astro_to_terpin, fatunik_to_pulse, pulse_info
+from ..pulse import (
+    astro_to_fatunik,
+    astro_to_terpin,
+    fatunik_to_pulse,
+    pulse_info,
+    terpin_to_pulse,
+)
 from ..sky import all_sky_positions, fatune_sky_position
 from .translator import (
     to_moon_view,
@@ -32,15 +38,19 @@ def _resolve_pulse(
 ) -> tuple[int | None, str | None]:
     """Parse request args into a pulse integer, or return an error string.
 
-    Priority: pulse > astro_day > fatunik date fields.
+    Priority: pulse > astro_day > fatunik date > terpin date.
     Returns (pulse, None) on success; (None, error_msg) on bad input;
     (None, None) when no input was given (form should render empty).
     """
-    pulse_p = request.args.get("pulse")
-    astro_day_p = request.args.get("astro_day")
-    fat_y = request.args.get("fatunik_year")
-    fat_m = request.args.get("fatunik_month")
-    fat_d = request.args.get("fatunik_day")
+    # treat empty strings (unset form fields) the same as absent
+    pulse_p = request.args.get("pulse") or None
+    astro_day_p = request.args.get("astro_day") or None
+    fat_y = request.args.get("fatunik_year") or None
+    fat_m = request.args.get("fatunik_month") or None
+    fat_d = request.args.get("fatunik_day") or None
+    ter_y = request.args.get("terpin_year") or None
+    ter_m = request.args.get("terpin_month") or None
+    ter_d = request.args.get("terpin_day") or None
 
     if pulse_p is not None:
         try:
@@ -61,6 +71,13 @@ def _resolve_pulse(
             return fatunik_to_pulse(date, cfg), None
         except (ValueError, KeyError) as exc:
             return None, f"Invalid Fatunik date: {exc}"
+
+    if ter_y and ter_m and ter_d:
+        try:
+            date = CalendarDate("terpin", int(ter_y), int(ter_m), int(ter_d))
+            return terpin_to_pulse(date, cfg), None
+        except (ValueError, KeyError) as exc:
+            return None, f"Invalid Terpin date: {exc}"
 
     return None, None
 
@@ -96,14 +113,15 @@ def index() -> str:
 @bp.route("/moons")
 def moons() -> str:
     cfg: AppConfig = current_app.config["SASK_CONFIG"]
-    default_pulse = cfg.timeline.story_now_pulse
     pulse, error = _resolve_pulse(cfg)
 
     moon_views = None
     fatune_pos = None
     fatunik_date = terpin_date = None
+    queried_astro_day = None
 
     if pulse is not None and error is None:
+        queried_astro_day = pulse // cfg.time_constants.pulses_per_day + 1
         all_states = all_body_states(pulse, cfg)
         all_positions = all_sky_positions(pulse, all_states, cfg)
         fatune_pos = fatune_sky_position(pulse, cfg.gavor, cfg.time_constants)
@@ -124,22 +142,23 @@ def moons() -> str:
         fatunik_date=fatunik_date,
         terpin_date=terpin_date,
         error=error,
-        default_pulse=default_pulse,
         queried_pulse=pulse,
+        queried_astro_day=queried_astro_day,
     )
 
 
 @bp.route("/planets")
 def planets() -> str:
     cfg: AppConfig = current_app.config["SASK_CONFIG"]
-    default_pulse = cfg.timeline.story_now_pulse
     pulse, error = _resolve_pulse(cfg)
 
     planet_views = None
     fatune_pos = None
     fatunik_date = terpin_date = None
+    queried_astro_day = None
 
     if pulse is not None and error is None:
+        queried_astro_day = pulse // cfg.time_constants.pulses_per_day + 1
         all_states = all_body_states(pulse, cfg)
         all_positions = all_sky_positions(pulse, all_states, cfg)
         fatune_pos = fatune_sky_position(pulse, cfg.gavor, cfg.time_constants)
@@ -167,6 +186,6 @@ def planets() -> str:
         fatunik_date=fatunik_date,
         terpin_date=terpin_date,
         error=error,
-        default_pulse=default_pulse,
         queried_pulse=pulse,
+        queried_astro_day=queried_astro_day,
     )
