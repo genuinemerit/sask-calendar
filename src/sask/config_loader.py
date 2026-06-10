@@ -182,6 +182,37 @@ class HouseNamingConfig:
 
 
 @dataclass(frozen=True)
+class CometConfig:
+    """One recurring comet record from comet_data.toml (SPEC-011)."""
+
+    id: str
+    name: str
+    period_days: float
+    epoch_offset: float
+    visible_duration_days: float
+    brightness: str
+    color: str
+    tail: str
+    lore: str | None
+
+
+@dataclass(frozen=True)
+class SparkConfig:
+    """The singleton Spark apparition from spark_data.toml (SPEC-011)."""
+
+    id: str
+    host_moon: str
+    normal_visibility: float
+    visibility_source: str
+    glimmer_probability: float
+    exposure_min_days: float
+    exposure_max_days: float
+    brightness: str
+    color: str
+    lore: str | None
+
+
+@dataclass(frozen=True)
 class AppConfig:
     time_constants: TimeConstants
     astro: CalendarConfig
@@ -194,6 +225,8 @@ class AppConfig:
     stars: tuple[FixedStarConfig, ...]  # 16 fixed stars (SPEC-010)
     houses: tuple[HouseConfig, ...]  # 14 Houses (SPEC-010)
     house_naming: HouseNamingConfig  # naming metadata (SPEC-010)
+    comets: tuple[CometConfig, ...]  # 3 recurring comets (SPEC-011)
+    spark: SparkConfig  # singleton Spark (SPEC-011)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -510,6 +543,48 @@ def _load_houses(
     return houses, naming
 
 
+def _load_comet(raw: dict, src: str) -> CometConfig:
+    return CometConfig(
+        id=str(_require(raw, "id", src)),
+        name=str(_require(raw, "name", src)),
+        period_days=float(_require(raw, "period_days", src)),  # type: ignore[arg-type]
+        epoch_offset=float(_require(raw, "epoch_offset", src)),  # type: ignore[arg-type]
+        visible_duration_days=float(_require(raw, "visible_duration_days", src)),  # type: ignore[arg-type]
+        brightness=str(_require(raw, "brightness", src)),
+        color=str(_require(raw, "color", src)),
+        tail=str(_require(raw, "tail", src)),
+        lore=str(raw["lore"]) if "lore" in raw else None,
+    )
+
+
+def _load_comets(raw: dict, src: str) -> tuple[CometConfig, ...]:
+    entries = raw.get("comet", [])
+    if not isinstance(entries, list) or len(entries) != 3:
+        raise ConfigError(
+            f"{src}: expected exactly 3 [[comet]] entries, found {len(entries)}"
+        )
+    return tuple(_load_comet(e, f"{src} comet[{i}]") for i, e in enumerate(entries))
+
+
+def _load_spark(raw: dict, src: str) -> SparkConfig:
+    s = _require(raw, "spark", src)
+    if not isinstance(s, dict):
+        raise ConfigError(f"{src}: [spark] must be a table")
+    ns = f"{src} [spark]"
+    return SparkConfig(
+        id=str(_require(s, "id", ns)),
+        host_moon=str(_require(s, "host_moon", ns)),
+        normal_visibility=float(_require(s, "normal_visibility", ns)),  # type: ignore[arg-type]
+        visibility_source=str(_require(s, "visibility_source", ns)),
+        glimmer_probability=float(_require(s, "glimmer_probability", ns)),  # type: ignore[arg-type]
+        exposure_min_days=float(_require(s, "exposure_min_days", ns)),  # type: ignore[arg-type]
+        exposure_max_days=float(_require(s, "exposure_max_days", ns)),  # type: ignore[arg-type]
+        brightness=str(_require(s, "brightness", ns)),
+        color=str(_require(s, "color", ns)),
+        lore=str(s["lore"]) if "lore" in s else None,
+    )
+
+
 # ── Public entry point ────────────────────────────────────────────────────────
 
 
@@ -536,6 +611,8 @@ def load_config(config_dir: Path) -> AppConfig:
     houses, house_naming = _load_houses(
         _load_toml(config_dir / "house_data.toml"), "house_data.toml"
     )
+    comets = _load_comets(_load_toml(config_dir / "comet_data.toml"), "comet_data.toml")
+    spark = _load_spark(_load_toml(config_dir / "spark_data.toml"), "spark_data.toml")
     return AppConfig(
         time_constants=tc,
         astro=astro,
@@ -548,4 +625,6 @@ def load_config(config_dir: Path) -> AppConfig:
         stars=stars,
         houses=houses,
         house_naming=house_naming,
+        comets=comets,
+        spark=spark,
     )

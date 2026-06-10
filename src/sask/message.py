@@ -133,6 +133,40 @@ class StarContext:
     visible_fixed_stars: tuple[FixedStarInfo, ...]
 
 
+@dataclass(frozen=True)
+class CometInfo:
+    """A visible comet in an apparition_context message unit (SPEC-011)."""
+
+    id: str
+    name: str
+    visibility: float  # [0.0, 1.0]; linear ramp, 1.0 at perihelion
+    color: str
+    tail: str
+    lore: str | None = None
+
+
+@dataclass(frozen=True)
+class SparkInfo:
+    """Spark state in an apparition_context message unit (SPEC-011).
+
+    visible=False when not currently glimpsed; visibility and exposure_days are 0.0.
+    """
+
+    visible: bool
+    visibility: float  # 0.0 or 1.0
+    exposure_days: float  # 0.0 when not visible
+    lore: str | None = None
+
+
+@dataclass(frozen=True)
+class ApparitionContext:
+    """Apparitions (comets and Spark) for a given pulse (SPEC-011)."""
+
+    pulse: int
+    comets_visible: tuple[CometInfo, ...]
+    spark: SparkInfo
+
+
 def validate(unit: object) -> list[str]:
     """Return a list of field-level errors for a message-unit dataclass.
 

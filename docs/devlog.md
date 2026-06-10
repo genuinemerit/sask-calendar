@@ -1,5 +1,24 @@
 # Dev log
 
+## 2026-06-10 — SPEC-011: apparitions — recurring comets and the Spark
+
+**SPEC-011 implemented** (43 tests, 376 total):
+
+- `config/comet_data.toml` / `config/spark_data.toml` — already authored; now
+  loaded into `AppConfig` via `CometConfig` and `SparkConfig` dataclasses.
+- `src/sask/config_loader.py` — `CometConfig`, `SparkConfig` dataclasses;
+  `_load_comets()` (expects exactly 3 `[[comet]]` entries), `_load_spark()`
+  (singleton `[spark]` table); `AppConfig` extended with `comets` and `spark`.
+- `src/sask/message.py` — `CometInfo`, `SparkInfo`, `ApparitionContext`
+  message units.
+- `src/sask/apparitions.py` — `get_apparitions(pulse, config)`: comet
+  visibility from `perihelion_n = (n + epoch_offset) * period_pulses`, linear
+  ramp to 0 at window edge; Spark via `_seeded_float(event_idx, salt)` — sha256
+  hash over Kanka's 38-day rotation events, glimmer_probability 0.01,
+  seeded exposure in [0.5, 3.0] days. No live RNG; fully reproducible.
+
+---
+
 ## 2026-06-10 — SPEC-010: fixed stars and Houses of the Equinox
 
 **Design work (all accepted):** DD-0005 (stars/houses), DD-0006 (apparitions),

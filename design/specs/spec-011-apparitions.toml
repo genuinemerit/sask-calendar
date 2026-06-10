@@ -1,6 +1,6 @@
 id = "SPEC-011"
 title = "Apparitions: recurring comets and the Kanka-hosted Spark"
-status = "proposed"
+status = "accepted"
 
 [implements]
 requirements = ["REQ-FUN-005"]
