@@ -1,5 +1,31 @@
 # Dev log
 
+## 2026-06-10 — SPEC-012: lunar calendars and co-fullness tracking
+
+**SPEC-012 implemented** (60 tests, 436 total):
+
+- `config/lunar_calendar_data.toml` / `config/cofullness_data.toml` — already
+  authored; now loaded into `AppConfig` via new dataclasses.
+- `src/sask/config_loader.py` — `LunarCalendarConfig`, `LunarCalendarSettings`,
+  `CofullnessConfig` dataclasses; `_load_lunar_calendar_entry`,
+  `_load_lunar_calendars` (expects exactly 4 `[[calendar]]` entries),
+  `_load_cofullness`; `AppConfig` extended with `lunar_calendars`,
+  `lunar_settings`, `cofullness`.
+- `src/sask/message.py` — `LunarDate` and `CofullnessEvent` message units.
+- `src/sask/lunar.py` — new module: `_synodic_period_days` (T_syn =
+  1/(1/T_sid − 1/AstroYear); "mean" = arithmetic mean of all 8 moons);
+  `_epoch_pulse` (fatunik or terpin anchor + offset); `get_lunar_date`
+  (lunation, day, month, turn, short_count, long_count); `_round_turns_for`
+  (smallest K turns realigning with AstroYear within tolerance, lru_cached);
+  `near_full` (synodic phase within full_tolerance_days of opposition);
+  `get_cofullness` (all midnight pulses in range with ≥ min_moons near-full).
+  No Flask imports; no civil-calendar leap arithmetic.
+- Four calendars: Untamed/Sella (12 months/turn, fatunik anchor);
+  Warren/Shunna (21 months/turn); Hearth/Jembor (no-turns, lunation+day only);
+  Terpin Lunar/mean (12 months/turn, terpin anchor).
+
+---
+
 ## 2026-06-10 — SPEC-011: apparitions — recurring comets and the Spark
 
 **SPEC-011 implemented** (43 tests, 376 total):

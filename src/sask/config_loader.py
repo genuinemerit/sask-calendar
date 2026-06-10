@@ -213,6 +213,38 @@ class SparkConfig:
 
 
 @dataclass(frozen=True)
+class LunarCalendarConfig:
+    """One lunar calendar record from lunar_calendar_data.toml (SPEC-012)."""
+
+    id: str
+    name: str
+    culture: str
+    moon: str  # moon id or "mean" (Terpin lunar)
+    has_turns: bool
+    months_per_turn: int | None  # None when has_turns=False
+    epoch_anchor: str  # "fatunik_solar_epoch" | "terpin_solar_epoch"
+    epoch_offset_days: float
+    lore: str | None
+
+
+@dataclass(frozen=True)
+class LunarCalendarSettings:
+    """Global settings from the [settings] block of lunar_calendar_data.toml."""
+
+    realign_tolerance_days: float  # tolerance for Round realignment search
+
+
+@dataclass(frozen=True)
+class CofullnessConfig:
+    """Co-fullness tracking settings from cofullness_data.toml (SPEC-012)."""
+
+    full_tolerance_days: float  # near-full window: 1 day per moon's synodic period
+    min_moons: int  # minimum count to report a co-fullness event
+    coverage_anchor: str  # informational: trusted-coverage start anchor
+    coverage_note: str | None
+
+
+@dataclass(frozen=True)
 class AppConfig:
     time_constants: TimeConstants
     astro: CalendarConfig
@@ -227,6 +259,9 @@ class AppConfig:
     house_naming: HouseNamingConfig  # naming metadata (SPEC-010)
     comets: tuple[CometConfig, ...]  # 3 recurring comets (SPEC-011)
     spark: SparkConfig  # singleton Spark (SPEC-011)
+    lunar_calendars: tuple[LunarCalendarConfig, ...]  # 4 lunar calendars (SPEC-012)
+    lunar_settings: LunarCalendarSettings  # Round realignment settings (SPEC-012)
+    cofullness: CofullnessConfig  # co-fullness tracking config (SPEC-012)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -585,6 +620,57 @@ def _load_spark(raw: dict, src: str) -> SparkConfig:
     )
 
 
+def _load_lunar_calendar_entry(raw: dict, src: str) -> LunarCalendarConfig:
+    return LunarCalendarConfig(
+        id=str(_require(raw, "id", src)),
+        name=str(_require(raw, "name", src)),
+        culture=str(_require(raw, "culture", src)),
+        moon=str(_require(raw, "moon", src)),
+        has_turns=bool(_require(raw, "has_turns", src)),
+        months_per_turn=int(raw["months_per_turn"])
+        if "months_per_turn" in raw
+        else None,
+        epoch_anchor=str(_require(raw, "epoch_anchor", src)),
+        epoch_offset_days=float(_require(raw, "epoch_offset_days", src)),  # type: ignore[arg-type]
+        lore=str(raw["lore"]) if "lore" in raw else None,
+    )
+
+
+def _load_lunar_calendars(
+    raw: dict, src: str
+) -> tuple[tuple[LunarCalendarConfig, ...], LunarCalendarSettings]:
+    settings_raw = _require(raw, "settings", src)
+    if not isinstance(settings_raw, dict):
+        raise ConfigError(f"{src}: [settings] must be a table")
+    tolerance = float(
+        _require(settings_raw, "realign_tolerance_days", f"{src} [settings]")
+    )  # type: ignore[arg-type]
+    settings = LunarCalendarSettings(realign_tolerance_days=tolerance)
+    entries = raw.get("calendar", [])
+    if not isinstance(entries, list) or len(entries) != 4:
+        raise ConfigError(
+            f"{src}: expected exactly 4 [[calendar]] entries, found {len(entries)}"
+        )
+    calendars = tuple(
+        _load_lunar_calendar_entry(e, f"{src} calendar[{i}]")
+        for i, e in enumerate(entries)
+    )
+    return calendars, settings
+
+
+def _load_cofullness(raw: dict, src: str) -> CofullnessConfig:
+    c = _require(raw, "cofullness", src)
+    if not isinstance(c, dict):
+        raise ConfigError(f"{src}: [cofullness] must be a table")
+    ns = f"{src} [cofullness]"
+    return CofullnessConfig(
+        full_tolerance_days=float(_require(c, "full_tolerance_days", ns)),  # type: ignore[arg-type]
+        min_moons=int(_require(c, "min_moons", ns)),  # type: ignore[arg-type]
+        coverage_anchor=str(_require(c, "coverage_anchor", ns)),
+        coverage_note=str(c["coverage_note"]) if "coverage_note" in c else None,
+    )
+
+
 # ── Public entry point ────────────────────────────────────────────────────────
 
 
@@ -613,6 +699,12 @@ def load_config(config_dir: Path) -> AppConfig:
     )
     comets = _load_comets(_load_toml(config_dir / "comet_data.toml"), "comet_data.toml")
     spark = _load_spark(_load_toml(config_dir / "spark_data.toml"), "spark_data.toml")
+    lunar_calendars, lunar_settings = _load_lunar_calendars(
+        _load_toml(config_dir / "lunar_calendar_data.toml"), "lunar_calendar_data.toml"
+    )
+    cofullness = _load_cofullness(
+        _load_toml(config_dir / "cofullness_data.toml"), "cofullness_data.toml"
+    )
     return AppConfig(
         time_constants=tc,
         astro=astro,
@@ -627,4 +719,7 @@ def load_config(config_dir: Path) -> AppConfig:
         house_naming=house_naming,
         comets=comets,
         spark=spark,
+        lunar_calendars=lunar_calendars,
+        lunar_settings=lunar_settings,
+        cofullness=cofullness,
     )

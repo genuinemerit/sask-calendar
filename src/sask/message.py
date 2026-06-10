@@ -134,6 +134,36 @@ class StarContext:
 
 
 @dataclass(frozen=True)
+class LunarDate:
+    """Lunar calendar date for a given pulse (SPEC-012).
+
+    turn, month, short_count, and long_count are None when has_turns=False
+    (Hearth/Jembor calendar). month and short_count are 1-based; turn and
+    long_count are 0-based.
+    """
+
+    pulse: int
+    calendar_id: str
+    has_turns: bool
+    lunation: int  # completed synodic cycles since epoch (can be negative)
+    day: int  # 1-based day within current cycle
+    month: int | None = None  # 1-based; None when has_turns=False
+    turn: int | None = None  # 0-based; None when has_turns=False
+    short_count: int | None = None  # 1-based within Round; None when has_turns=False
+    long_count: int | None = None  # 0-based Round count; None when has_turns=False
+
+
+@dataclass(frozen=True)
+class CofullnessEvent:
+    """A night where >= min_moons real moons are near-full (SPEC-012)."""
+
+    pulse: int
+    count: int  # number of near-full moons
+    moons: tuple[str, ...]  # moon ids that are near-full
+    solar_dates: tuple[CalendarDate, ...]  # Fatunik and Terpin dates
+
+
+@dataclass(frozen=True)
 class CometInfo:
     """A visible comet in an apparition_context message unit (SPEC-011)."""
 

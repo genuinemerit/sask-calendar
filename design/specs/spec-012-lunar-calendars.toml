@@ -1,6 +1,6 @@
 id="SPEC-012"
 title="Lunar calendars and co-fullness tracking"
-status="proposed"
+status="accepted"
 
 [implements]
 requirements=["REQ-FUN-008","REQ-FUN-004"]
