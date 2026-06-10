@@ -1,0 +1,61 @@
+id="SPEC-010"
+title="Star context: fixed stars and the Houses of the Equinox for a given pulse"
+status="proposed"
+
+[implements]
+requirements=["REQ-FUN-007"]
+dds=["DD-0005","DD-0002","DD-0004"]
+
+[scope]
+in_scope=[
+  "Config files for the sixteen fixed stars and fourteen Houses, with their meta-schemas.",
+  "A pure get_star_context(pulse) computation returning the active House, the circumpolar houses, and the visible fixed stars.",
+  "The star_context message unit (typed, snake_case, validated against its meta).",
+  "The seasonal-window visibility rule for stars and the sidereal-arc placement rule for the seasonal houses.",
+]
+out_of_scope=[
+  "Precise sidereal positions and per-star rise/transit/set (season-window visibility is sufficient here).",
+  "Web sky-view display of star context (SPEC-011, later).",
+  "Comets and The Spark (apparitions; a later section).",
+  "Any pulse<->calendar or calendar<->calendar correspondence (machine-handled elsewhere; not used here).",
+]
+
+[deliverables]
+config=[
+  "/config/star_template.toml and /config/star_data.toml - the sixteen fixed stars.",
+  "/config/house_template.toml and /config/house_data.toml - the fourteen Houses plus the [houses] naming block and [placement] rule.",
+]
+computation="""
+get_star_context(pulse) is a pure function of pulse and config:
+1. season = get_season(pulse)  (SPEC-004).
+2. orbital_position = Gavor's orbital fraction at pulse (the same position the
+   seasons derive from); map it to the active House via the [placement] rule
+   (twelve equal sidereal arcs in `order`, offset from the season boundaries).
+   The active House is always one of the twelve seasonal houses.
+3. visible_fixed_stars = all perennial stars plus all stars whose `season`
+   equals the current season.
+4. circumpolar_houses = the two type='circumpolar' houses (always present).
+It touches no civil calendar and fixes no pulse constants; the implementation
+computes and records the exact arc boundaries deterministically from orbital
+position.
+"""
+message_unit="""
+star_context (snake_case, validated against its meta):
+  pulse                : int
+  season               : string
+  house_of_the_equinox : { id, name, season_span, personality[], shape, stars[], lore }
+  circumpolar_houses   : [ { id, name, stars[], shape, lore } ]    # the two
+  visible_fixed_stars  : [ { id, name, epithet, season, brightness, color,
+                             variable, trait, position, lore } ]
+A field never mixes types; absent optionals are null, never the string 'n/a'.
+"""
+
+[acceptance]
+checks=[
+  "The active house for any pulse is one of the twelve seasonal houses; a circumpolar house is never returned as the active house.",
+  "For a pulse in each season, visible_fixed_stars contains exactly the four perennial stars plus that season's three stars (seven total).",
+  "Across one sidereal year the active house advances through all twelve in `order`, with boundaries offset from the season boundaries; the exact offset is fixed and recorded by the implementation.",
+  "For a fixed pulse, changing the Fatunik or Terpin calendar config does not change star_context output.",
+  "All names, characteristics, shapes, personalities, and lore are read from config; nothing is hardcoded.",
+  "star_context validates against its meta; star_data and house_data validate against their templates.",
+]

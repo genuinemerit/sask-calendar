@@ -1,0 +1,15 @@
+id="REQ-FUN-009"
+title="Sky-scene composition and rendering"
+category="functional"
+priority="must"
+statement="For a given pulse, the engine composes a sky scene: the season, the bodies above the horizon at that moment (moons, planets, comets, the Spark) with their direction, altitude, color, brightness, and phase, the visible fixed stars and the active and circumpolar Houses, whether the night is a co-fullness night, and the next co-fullness night. From this one scene the engine renders a plain-language night summary and an image-generation prompt; the image prompt applies a selectable style drawn from a separate style config. All rendering is deterministic templating over the scene; no AI call is made."
+rationale="A single composed scene, read as data, prose, and an image prompt, gives an immediate human-readable night summary and a clean seam for a future image-generation call, with no new dependency. Composing once and rendering many keeps it consistent and testable, and isolating the artistic style in config makes experimenting with looks a config change, not a code change."
+acceptance=[
+  "The scene includes only bodies above the horizon at the given pulse (via SPEC-008), placed by direction and altitude.",
+  "The night summary and image prompt are pure deterministic functions of pulse and config; the same pulse yields the same text.",
+  "The image prompt equals the summary content plus the selected style's directives; the style is read from a separate style config and can be switched without code changes.",
+  "Co-fullness for the night and the next co-fullness night are reported from the existing tracker.",
+  "No rendering makes an AI or network call; the image prompt is the deliverable, ready for a future image-generation consumer.",
+]
+[links]
+dds=["DD-0008","DD-0002","DD-0003"]

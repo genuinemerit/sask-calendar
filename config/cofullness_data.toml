@@ -1,0 +1,6 @@
+# /config/cofullness_data.toml - co-fullness tracking settings (DD-0007).
+[cofullness]
+full_tolerance_days = 1.0
+min_moons = 2
+coverage_anchor = "fatunik_solar_epoch"
+coverage_note = "Trusted records (Terpinol Academy, Night Hall Library) run roughly from the Fatunik solar epoch forward; the computation itself is unbounded."

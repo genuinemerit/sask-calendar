@@ -1,0 +1,13 @@
+# /config/lunar_calendar_template.toml - meta-schema for lunar calendars (DD-0007).
+title = "lunar_calendar"
+
+[fields]
+id = { required = true, type = "string" }
+name = { required = true, type = "string" }
+culture = { required = true, type = "string" }
+moon = { required = true, type = "string" }
+has_turns = { required = true, type = "bool" }
+months_per_turn = { required = false, type = "int" }
+epoch_anchor = { required = true, type = "string", enum = ["terpin_solar_epoch", "fatunik_solar_epoch"] }
+epoch_offset_days = { required = true, type = "float" }
+lore = { required = false, type = "string" }

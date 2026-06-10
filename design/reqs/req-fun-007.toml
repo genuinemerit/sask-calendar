@@ -1,0 +1,14 @@
+id="REQ-FUN-007"
+title="Fixed-star and constellation (star context) for a given pulse"
+category="functional"
+priority="must"
+statement="For a given pulse, the engine returns the star context of the Saskan night sky: the active House of the Equinox (the seasonal house Fatune occupies), the always-present circumpolar houses, and the visible fixed stars (the perennial stars plus the stars of the current season). The active House is determined from sidereal/orbital position and fixed-star visibility from the astronomical season; neither uses any civil calendar or fixed pulse."
+rationale="Star context is a core reference surface for writing and worldbuilding and a future RPG, and the last of the original get_* surfaces. Keying it to orbital position and season keeps it calendar-independent and consistent with the seasons engine, and lets the lore (houses, personalities, shapes, contested naming) ride as an overlay over a stable computed core."
+acceptance=[
+  "Given a pulse, the active House is the seasonal house whose sidereal arc contains Fatune's position; it is always one of the twelve seasonal houses, never a circumpolar one.",
+  "Visible fixed stars always include the four perennial stars and additionally the stars whose season matches the current astronomical season.",
+  "Changing only a civil-calendar definition does not change which House or stars are returned for a given pulse.",
+  "House and star rosters, characteristics, shapes, and lore are read from config; no names or attributes are hardcoded.",
+]
+[links]
+dds=["DD-0002","DD-0005"]

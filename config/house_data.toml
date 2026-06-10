@@ -1,0 +1,110 @@
+# /config/house_data.toml - the fourteen Houses of the Equinox (DD-0005).
+
+[houses]
+name_technical  = "Houses of the Equinox"
+name_colloquial = "Houses of Fatune"
+tradition       = "Settan"
+heresy_note = """
+Orthodox Fatunik communities consider both the birth-personality readings and
+the colloquial name 'Fatune's Houses' heretical. Non-orthodox Fatunik believers
+(notably in the Outer Lands and the Covenant of Varkaar, outside the Fatunik
+Dominion) keep the tradition in varied forms; elsewhere in the Saskan Lands,
+where Fatunik belief is rare, Fatune holds other roles in local belief.
+"""
+
+[placement]
+house_count = 12
+order_field = "order"
+note = """
+The twelve seasonal houses are equal arcs of the sidereal year, taken in `order`
+1..12, offset late from the season boundaries by about half a house, matching the
+authored Late-X-to-Late-Y spans. The implementation computes and freezes the
+exact arc boundaries from orbital position; no pulses or calendar dates are set.
+The two circumpolar houses have no arc - never 'the sign'.
+"""
+
+[[house]]
+id="watchers_of_stillness"; name="The Watchers of Stillness"; type="circumpolar"
+stars=["ilyrun","kresh"]
+shape="Two steady points near the pole with a faint trailing scatter - robed sentinels keeping vigil; Ilyrun the unblinking eye."
+lore="Associated with the ancients and the ancestors."
+
+[[house]]
+id="chain_of_four"; name="The Chain of Four"; type="circumpolar"
+stars=["marnok","sethera"]
+shape="Four stars in a short curved chain; Marnok and Sethera the brightest links."
+lore="The unknown authors of the Raeyi Muuri, the canonical Fatunik religious text."
+
+[[house]]
+id="ember_gate"; name="The Ember Gate"; type="seasonal"; order=1
+season_span="late Greening to late Blazing"
+personality=["moody","impulsive","leader","physical"]
+shape="Two upright pillars bridged by a lintel - a glowing archway."
+
+[[house]]
+id="twin_horns"; name="The Twin Horns"; type="seasonal"; order=2
+season_span="late Greening to late Blazing"
+personality=["patient","reliable","handcrafts","gardening and farming"]
+shape="A pair of upward-curving horns side by side."
+
+[[house]]
+id="hollow_root"; name="The Hollow Root"; type="seasonal"; order=3
+season_span="late Greening to late Blazing"
+personality=["indecisive","affectionate","gentle","smart"]
+shape="A forked root branching downward, splitting in two."
+
+[[house]]
+id="lantern_grove"; name="The Lantern Grove"; type="seasonal"; order=4
+season_span="late Blazing to late Withering"
+stars=["saurnak"]
+personality=["manipulative","artistic","loyal","private"]
+shape="Warm points hung among fainter stars like lanterns in trees; Saurnak the brightest lantern."
+
+[[house]]
+id="silver_wheel"; name="The Silver Wheel"; type="seasonal"; order=5
+season_span="late Blazing to late Withering"
+personality=["stubborn","self-centered","fun-loving","performer"]
+shape="A spoked ring, a wheel caught mid-turn."
+
+[[house]]
+id="burning_mirror"; name="The Burning Mirror"; type="seasonal"; order=6
+season_span="late Blazing to late Withering"
+personality=["shy","critical","loves animals and nature","cook"]
+shape="A bright star beside its dimmer twin - a face and its reflection."
+
+[[house]]
+id="loom_of_krenna"; name="The Loom of Krenna"; type="seasonal"; order=7
+season_span="late Withering to late Stillness"
+stars=["krenna"]
+personality=["gracious","fair-minded","indecisive","gentle"]
+shape="An upright rectangular frame crossed by a diagonal thread; Krenna the shuttle at its heart."
+
+[[house]]
+id="broken_staff"; name="The Broken Staff"; type="seasonal"; order=8
+season_span="late Withering to late Stillness"
+personality=["brave","passionate","jealous","violent"]
+shape="A straight line of stars snapped with a sharp bend at the middle."
+
+[[house]]
+id="thorned_veil"; name="The Thorned Veil"; type="seasonal"; order=9
+season_span="late Withering to late Stillness"
+personality=["idealistic","funny","impatient","verbose"]
+shape="A draped arc studded with small outward spikes."
+
+[[house]]
+id="stone_circle"; name="The Stone Circle"; type="seasonal"; order=10
+season_span="late Stillness to late Greening"
+personality=["responsible","unforgiving","tradition","craftsmanship"]
+shape="A wide, irregular ring of bright standing stones."
+
+[[house]]
+id="winged_pollinator"; name="The Winged Pollinator"; type="seasonal"; order=11
+season_span="late Stillness to late Greening"
+personality=["bold","risky","temperamental","independent"]
+shape="A small compact body with two outspread wings."
+
+[[house]]
+id="long_sickle"; name="The Long Sickle"; type="seasonal"; order=12
+season_span="late Stillness to late Greening"
+personality=["wise","musical","fearful","romantic"]
+shape="A long curving arc tapering to a hooked point."

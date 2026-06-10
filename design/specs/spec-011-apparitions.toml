@@ -1,0 +1,66 @@
+id = "SPEC-011"
+title = "Apparitions: recurring comets and the Kanka-hosted Spark"
+status = "proposed"
+
+[implements]
+requirements = ["REQ-FUN-005"]
+dds = ["DD-0006", "DD-0002", "DD-0004"]
+
+[scope]
+in_scope = [
+  "Config for the recurring comets and the singleton Spark object, with the comet meta-schema.",
+  "A pure computation of comet visibility at a pulse (visible within the duration window around each perihelion).",
+  "The Spark glimmer contract: a deterministic, pulse-seeded derivation of Spark visibility from Kanka's spin, with seeded exposure durations.",
+  "The apparition message unit (typed, snake_case, validated).",
+]
+out_of_scope = [
+  "One-off or authored apparitions (none exist).",
+  "The historical-timeline / authored-events pass.",
+  "Web sky-view display of apparitions (later).",
+  "Any pulse<->calendar or calendar<->calendar correspondence.",
+]
+
+[deliverables]
+config = [
+  "/config/comet_template.toml and /config/comet_data.toml - the three recurring comets.",
+  "/config/spark_data.toml - the singleton Spark object.",
+]
+comet_computation = """
+Perihelion times are perihelion_pulse = (n + epoch_offset) * period_in_pulses.
+A comet is visible when the pulse lies within visible_duration_days of a
+perihelion; visibility may ramp to a peak at perihelion and fade to the window
+edges. Pure function of pulse and config; nothing authored, no calendar.
+"""
+spark_glimmer_contract = """
+The Spark's visibility is derived, not authored, and must be deterministic and
+reproducible (REQ-FUN-001, REQ-FUN-005):
+- Inputs: the pulse; Kanka's spin state from its pulse-seeded spin generator; the
+  observer (Saskan Lands latitude) and Fatune's position (night side).
+- The ship is parked over one fixed point on Kanka. The Spark is glimpsed when
+  that point is turned into night-side view; visibility is otherwise 0.
+- Each exposure's duration is drawn from a deterministic pulse-seeded generator
+  within [exposure_min_days, exposure_max_days] - a local seeded generator like
+  Kanka's spin, never a global or live RNG.
+- Reproducible: identical (pulse, config, recorded seed) always yield identical
+  Spark visibility and exposure windows.
+Claude Code implements the spin-to-visibility geometry and the seeded duration;
+this SPEC fixes the contract, determinism, inputs, and config knobs.
+"""
+message_unit = """
+apparition (snake_case, validated against its meta):
+  pulse          : int
+  comets_visible : [ { id, name, visibility, color, tail, lore } ]
+  spark          : { visible, visibility, exposure_days, lore }   # visible may be false
+Absent optionals are null, never the string 'n/a'; no field mixes types.
+"""
+
+[acceptance]
+checks = [
+  "A comet is visible exactly within its duration window around each perihelion (epoch + n*period) and not otherwise.",
+  "Comet appearances recur with the configured period; no comet is authored or one-off.",
+  "Spark visibility is derived solely from Kanka's pulse-seeded spin and observer/sun geometry; it is 0 outside an exposure.",
+  "Spark exposure durations fall within the configured range and are reproducible for the recorded seed and config.",
+  "No apparition uses live or global randomness; dropping caches and recomputing yields identical results.",
+  "Changing a civil-calendar definition does not change any apparition output for a fixed pulse.",
+  "All names, periods, durations, and lore are read from config; nothing is hardcoded.",
+]

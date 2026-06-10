@@ -1,0 +1,80 @@
+id     = "DD-0008"
+title  = "Unified sky-for-a-date view and sky-scene rendering"
+status = "accepted"
+date   = "2026-06-08"
+
+[context]
+problem = """
+The engine now produces many per-date surfaces - calendar conversions, season,
+moons, planets, comets and the Spark, fixed stars and Houses, lunar dates, and
+co-fullness - but no single place shows them, and there is no text rendering of a
+night sky. This DD fixes how they come together: one page for everything, one
+composed sky scene behind it, and deterministic text renderings (a night summary
+and an image-generation prompt) over that scene, with artistic style isolated in
+config for later experimentation.
+"""
+constraints = [
+  "Reuse existing surfaces; add no engine logic beyond composing and rendering what is already computed.",
+  "Server-rendered Jinja, no JavaScript (DD-0003); the engine never imports Flask.",
+  "All rendering is deterministic; no AI or network call is made now. The image prompt is the deliverable and the future API's input.",
+  "The multi-format date display consumes the existing translators (SPEC-003); it restates no calendar correspondence.",
+]
+alternatives = [
+  "Scatter the surfaces across separate pages - rejected: one page is the writer's tool ('what was the sky like that night').",
+  "Generate the image prompt with an AI call now - rejected: deterministic templating needs no AI, and the API folds in later as a consumer.",
+  "Bake the artistic style into the renderer - rejected: a separate style config makes trying new looks a config change.",
+  "Accept lunar dates as input - deferred: lunar calendars are display-only for now; the inverse conversions wait.",
+]
+
+[decision]
+summary = """
+1. One "Sky for a date" page. Input is a pulse or a solar date (Fatunik or
+   Terpin). Output, on a single page: every date format including the four lunar
+   calendars (display-only), and the full sky scene. Drill-down links are added
+   only where a genuine deeper level of detail exists.
+2. A composed sky_scene message unit for a given pulse: season; the bodies above
+   the horizon at that moment (moons, planets, comets, the Spark) with direction,
+   altitude, color, brightness, and phase (via SPEC-008); the visible fixed stars
+   and the active and circumpolar Houses; whether it is a co-fullness night; and
+   the next co-fullness night.
+3. Three renderers over the one scene: the page's HTML panels, a plain-language
+   night summary, and an image-generation prompt. The image prompt is the summary
+   content plus a style layer. All deterministic; no AI call.
+4. Artistic style lives in a separate style config: one or more named styles
+   (ink-wash/sumi-e, watercolor, ...) with a default, so looks can be added or
+   switched without code. This is the experimentation hook for the eventual image
+   API.
+5. Co-fullness on the page is the next co-fullness night (count and moons) rather
+   than a range dump; the threshold is configurable.
+6. Time: the scene is for a specific moment, taking a pulse (which carries
+   time-of-day) and defaulting to deep night. Named time-of-night ("watches") and
+   richer time handling are deferred to a later time build.
+"""
+rationale = """
+Composing one scene and rendering it as data, prose, and a prompt gives an
+immediate night summary and a clean future image-API seam with no new dependency,
+and keeps everything consistent and testable. One page is the natural tool for the
+writing use. Isolating style in config follows the config-as-truth line and makes
+the look a tunable knob.
+"""
+
+[consequences]
+positive = [
+  "One page answers 'what was the sky like that night' from a single date entry.",
+  "The night summary is useful immediately; the image prompt is ready for a future API with no rearchitecting.",
+  "Artistic style is a config experiment, not a code change.",
+  "Everything stays deterministic; only the eventual image model adds nondeterminism, isolated at that boundary.",
+]
+negative = [
+  "The scene composition must join several surfaces and filter to above-horizon; a modest amount of new glue.",
+  "Lunar-as-input and named-watches time handling remain deferred.",
+]
+followups = [
+  "SPEC-013: sky_scene composition, the night-summary and image-prompt renderers, and the style config.",
+  "SPEC-014: the unified Sky-for-a-date web view consuming the scene, the date translators, and next co-fullness.",
+  "Later: a time build (named watches, time-of-night selection); folding in a real image-generation API as a prompt consumer.",
+]
+
+[links]
+requirements = ["REQ-FUN-009","REQ-OPS-007","REQ-OPS-008"]
+dds = ["DD-0002","DD-0003"]

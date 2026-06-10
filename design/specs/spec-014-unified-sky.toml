@@ -1,0 +1,41 @@
+id="SPEC-014"
+title="Unified Sky-for-a-date web view"
+status="proposed"
+
+[implements]
+requirements=["REQ-OPS-007","REQ-OPS-008","REQ-FUN-009"]
+dds=["DD-0008","DD-0003"]
+
+[scope]
+in_scope=[
+  "A single server-rendered page that takes a pulse or a solar date and shows every date format (including the four lunar calendars, display-only) and the full sky scene.",
+  "Panels for: all date formats; season; moons; wanderers (planets); comets and the Spark; fixed stars and the active and circumpolar Houses; the next co-fullness night; and the night summary with its image prompt.",
+  "Cross-links and a shareable date in the query string.",
+]
+out_of_scope=[
+  "JavaScript of any kind (DD-0003).",
+  "Lunar dates as input (display-only for now).",
+  "An actual image-generation call (the prompt is shown as text).",
+  "Named time-of-night selection (later time build).",
+]
+
+[deliverables]
+page="""
+One Jinja page. The form accepts a pulse or a Fatunik/Terpin solar date; on submit
+the date is rendered in all formats via the existing translators (SPEC-003) plus
+the four lunar calendars (SPEC-012, display-only), and get_sky_scene drives the
+sky panels and the night-summary and image-prompt text (SPEC-013). The page
+defaults the time-of-night to deep night. The selected date rides in the query
+string so the view is bookmarkable and shareable. Drill-down links appear only
+where a deeper detail level exists.
+"""
+message_units="Consumes sky_scene (SPEC-013), lunar_date (SPEC-012), and the calendar translators (SPEC-003) in-process; the engine never imports Flask (DD-0003)."
+
+[acceptance]
+checks=[
+  "Entering a pulse or a Fatunik/Terpin solar date renders all date formats including the four lunar calendars on one page.",
+  "The page shows the full sky for the date - season, moons, planets, comets, the Spark, fixed stars, active and circumpolar Houses - plus the next co-fullness night and the night summary with its image prompt.",
+  "The page is fully server-rendered with no JavaScript.",
+  "The date rides in the query string, and reloading the URL reproduces the view.",
+  "Lunar calendars appear only as output; the page accepts only pulse and solar-date input.",
+]

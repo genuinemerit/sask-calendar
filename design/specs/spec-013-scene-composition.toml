@@ -1,0 +1,66 @@
+id="SPEC-013"
+title="Sky-scene composition and text rendering"
+status="proposed"
+
+[implements]
+requirements=["REQ-FUN-009"]
+dds=["DD-0008","DD-0002"]
+
+[scope]
+in_scope=[
+  "A pure get_sky_scene(pulse) that composes the per-moment scene from the existing surfaces, filtered to bodies above the horizon (SPEC-008).",
+  "A night-summary renderer (plain-language prose) over the scene.",
+  "An image-prompt renderer (summary content plus a selected style's directives) over the scene.",
+  "A separate style config of named styles with a default.",
+  "The sky_scene message unit.",
+]
+out_of_scope=[
+  "Any AI or network call; the image prompt is text output only.",
+  "The web page (SPEC-014).",
+  "Named time-of-night / watches (later time build).",
+  "Any pulse<->calendar or calendar<->calendar correspondence.",
+]
+
+[deliverables]
+config=[
+  "/config/sky_style_template.toml and /config/sky_style_data.toml - named image-prompt styles and the default selection.",
+]
+scene="""
+get_sky_scene(pulse) is pure over pulse and config:
+- season from SPEC-004.
+- bodies_up: moons, planets, comets, and the Spark whose altitude > 0 at the
+  pulse (SPEC-008), each with direction (compass plus low/high from alt/az),
+  color, brightness, and (moons/planets) illumination/phase from SPEC-007/009/011.
+- stars_up and houses: the visible fixed stars and the active and circumpolar
+  Houses from SPEC-010 (a star included when its season is current).
+- co_fullness_tonight (count and moons, if any) and next_co_fullness from SPEC-012.
+"""
+renderers="""
+render_night_summary(scene): plain-language prose describing the visible sky -
+season mood, moons up and their phases and places, planets, any comet or the
+Spark, prominent stars and the active House, and a co-fullness note when the night
+qualifies. Deterministic.
+render_image_prompt(scene, style_id = default): the summary content recomposed as
+an image-generation prompt, with the selected style's medium, palette, and
+composition directives appended. Deterministic; emits text only and makes no call.
+"""
+message_unit="""
+sky_scene (snake_case, validated):
+  pulse, season,
+  bodies_up: [ { id, name, type, direction, altitude, color, brightness, phase } ],
+  stars_up: [ { id, name, direction } ],
+  active_house: { id, name }, circumpolar_houses: [ { id, name } ],
+  co_fullness_tonight: { count, moons } | null,
+  next_co_fullness: { pulse, count, moons }
+Absent optionals are null, never 'n/a'; no field mixes types.
+"""
+
+[acceptance]
+checks=[
+  "The scene contains only bodies with altitude > 0 at the pulse, each placed by direction and altitude.",
+  "render_night_summary and render_image_prompt are deterministic: the same pulse, config, and style yield identical text.",
+  "render_image_prompt output is the summary content plus exactly the selected style's directives; switching default_style in config changes the prompt with no code change.",
+  "co_fullness_tonight and next_co_fullness match the SPEC-012 tracker.",
+  "No renderer performs an AI or network call.",
+  "Styles and all scene inputs are read from config; nothing is hardcoded.",
+]

@@ -1,0 +1,16 @@
+id="REQ-FUN-008"
+title="Lunar calendars and co-fullness tracking"
+category="functional"
+priority="must"
+statement="The engine provides lunar calendar views and a co-fullness tracker, all derived from per-moon full-moon (synodic phase 0.5) schedules. A lunar calendar reckons by one moon's synodic cycle (or, for the Terpin calendar, the arithmetic mean of all eight moons' synodic cycles): a month is one synodic cycle, dates count from the calendar's epoch, and turn-based calendars also report a Round (the number of turns to realign with the AstroYear) as a long count (Rounds since epoch) and short count (turn within the Round). Calendars without turns report a running lunation count and day only. Co-fullness tracking returns, over a date range, the nights on which at least a configured minimum of moons are full within a single global tolerance, with the count, the moons, and the date in solar terms; it is a tracker, not a calendar, and has no epoch."
+rationale="Lunar reckoning and co-fullness celebrations recur throughout the storylines, and both are the same underlying computation - per-moon full-moon schedules - read differently, so they share one lean core. Keying the Round to the AstroYear keeps the slow luni-solar correspondence astronomical and clear of the civil-calendar conversions handled elsewhere."
+acceptance=[
+  "A month equals one synodic cycle of the calendar's moon, or the mean synodic cycle for the Terpin calendar; dates count from the calendar's epoch.",
+  "Turn-based calendars report long count, short count, turn, month, and day; the Round length is computed from the moon's synodic period, the months per turn, and the AstroYear, and recorded.",
+  "A calendar without turns reports a running lunation count and the day within it, and no Round.",
+  "Co-fullness tracking lists every night in a range where the count of moons within one day of true full is at least the configured minimum, with the participating moons and the solar date.",
+  "Changing a civil-calendar definition does not change any lunar date or co-fullness result for a fixed pulse.",
+  "All calendar definitions, moon assignments, tolerances, and lore are read from config; nothing is hardcoded.",
+]
+[links]
+dds=["DD-0002","DD-0007"]

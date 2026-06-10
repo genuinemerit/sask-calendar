@@ -6,8 +6,9 @@ statement="Episodic objects (the Spark, comets) are modeled as apparitions with 
 rationale="Per-day randomness cannot produce events that span multiple nights; an epoch-plus-duration window ensures continuous visibility and deterministic reproducibility for authored lore events."
 acceptance=[
   "An apparition is continuously visible across its full window, not a single random day.",
-  "Authored apparitions (e.g., The First Spark) appear on their authored pulse.",
-  "Apparition occurrence is reproducible for a given seed and config.",
+  "Recurring comets are visible within their duration window around each perihelion (epoch + n*period) and not otherwise.",
+  "The Spark's visibility is derived from Kanka's pulse-seeded spin; appearances and their exposure lengths are reproducible for the recorded seed and config.",
+  "No apparition uses live or global randomness.",
 ]
 [links]
 dds=["DD-0002"]

@@ -1,0 +1,23 @@
+# /config/sky_style_data.toml - named image-prompt styles (DD-0008).
+# The image-prompt renderer wraps the night-summary text with the selected style's
+# directives. Add or switch styles here without touching code; default_style picks
+# the active one. No AI is called - this only shapes the generated prompt text.
+
+[settings]
+default_style = "sumi_e"
+
+[[style]]
+id = "sumi_e"
+name = "Ink Wash (Sumi-e)"
+medium = "a monochrome ink-wash painting in the sumi-e tradition"
+palette = "black ink on warm rice paper, with sparing, graded tonal washes"
+composition = "asymmetric, with generous negative space and a low horizon, the night sky given room to breathe"
+extra = "loose, gestural brushwork; suggestion rather than detail"
+
+[[style]]
+id = "watercolor"
+name = "Soft Watercolor"
+medium = "a delicate watercolor painting in the East Asian landscape tradition"
+palette = "muted indigo and slate night tones lit by faint warm lamplight"
+composition = "layered, soft-edged washes over a calm horizontal landscape"
+extra = "gentle gradients; moons and stars as soft luminous points"

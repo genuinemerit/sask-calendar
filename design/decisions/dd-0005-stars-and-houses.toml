@@ -1,0 +1,88 @@
+id     = "DD-0005"
+title  = "Fixed stars and the Houses of the Equinox"
+status = "accepted"
+date   = "2026-06-06"
+
+[context]
+problem = """
+The prototype's get_star_context embedded all sky lore in code, keyed the active
+"house" to the civil solar month, and carried no star characteristics. This DD
+freezes the model and the authored roster for the fixed stars and the
+constellations (the Houses of the Equinox) so the section can be specified and
+built. It records decisions, the roster, and the placement rule only; per-item
+attribute values and config layout are SPEC-010 deliverables.
+"""
+constraints = [
+  "Star context is calendar-independent: keyed to orbital position and astronomical season, never to the Fatunik or Terpin calendars or to specific pulses.",
+  "Storytelling-grade: a rough figure per constellation, not a star-by-star map; individual stars are not enumerated into constellation geometry.",
+  "Fixed stars do not move; only Gavor's spin (nightly) and orbit (seasonal) change their apparent position.",
+  "Relationships to Fatune vary by culture; the computed core must be separable from any one culture's reading.",
+]
+alternatives = [
+  "Key the active house to the civil solar month (prototype) - rejected: couples the sky to a civil calendar and drifts under leap rules.",
+  "Give every star a precise sidereal position and run per-star rise/set - deferred: season-window visibility suffices for storytelling; precise positions can be added later if a rendered sky is built.",
+  "Twelve houses aligned to the four season boundaries - rejected for an offset ring, which matches real zodiacs and the authored Late-X-to-Late-Y spans.",
+]
+
+[decision]
+summary = """
+1. Roster - sixteen fixed stars and fourteen Houses:
+   - Twelve seasonal stars (three per season) plus four perennial (circumpolar)
+     stars: Ilyrun, Kresh, Marnok, Sethera.
+   - Twelve seasonal houses in four season-spanning groups of three, plus two
+     circumpolar houses: The Watchers of Stillness (Ilyrun, Kresh) and The Chain
+     of Four (Marnok, Sethera).
+2. Fixed-star visibility is a seasonal-window model: a star is visible when its
+   season matches the current astronomical season (SPEC-004); perennial stars
+   are the "all-season / always visible" case.
+3. The active House is keyed to sidereal/orbital position: the twelve seasonal
+   houses are twelve equal arcs of the sidereal year, in a fixed order, offset
+   from the season boundaries by about half a house so the season points fall
+   mid-group. The active House is the arc Fatune occupies and is always one of
+   the twelve seasonal houses; the two circumpolar houses are never "the sign"
+   (Fatune's path never reaches the pole). Claude Code computes and records the
+   exact arc boundaries deterministically from orbital position; no pulses or
+   calendar dates are fixed.
+4. Star-to-house links are fixed: Ilyrun, Kresh -> Watchers of Stillness;
+   Marnok, Sethera -> Chain of Four; Krenna -> Loom of Krenna; Saurnak ->
+   Lantern Grove.
+5. Contested naming is canonical, recorded as two names: the neutral/technical
+   "Houses of the Equinox" and the colloquial/Settan "Houses of Fatune."
+   Orthodox Fatunik consider both the personality readings and the "Fatune's
+   Houses" framing heretical. The wider variety of relationships to Fatune -
+   non-orthodox Fatunik believers in the Outer Lands and the Covenant of Varkaar
+   (outside the Fatunik Dominion), non-Fatunik local belief systems elsewhere,
+   and the Agency's plain G-type-star view - is lore.
+6. Personality/astrological associations (Settan tradition) and constellation
+   shapes are lore overlay over the computed core, never inputs to computation.
+"""
+rationale = """
+Keying visibility to season and the active House to orbital position makes star
+context a clean function of orbital position alone - calendar-independent, stable
+under leap rules, consistent with the seasons engine. Twelve seasonal houses plus
+two circumpolar ones map exactly to the astronomy: the sun's ring carries twelve
+signs while the north holds always-present houses that are never signs. Recording
+two names turns the naming tension into intentional cultural depth, and keeping
+personalities and shapes as overlay preserves technical-first, lore-second.
+"""
+
+[consequences]
+positive = [
+  "Star context is fully calendar-independent and stable under any calendar's leap rules.",
+  "Twelve signs plus two circumpolar houses is internally consistent astronomy.",
+  "Lore (names, personalities, shapes, the heresy framing) can be swapped or extended per culture without touching computation.",
+  "Claude Code derives the exact house boundaries from the placement rule; no pulses or dates are frozen.",
+]
+negative = [
+  "Seasonal-window visibility is season-granular, not precise rise/set, until (if ever) precise sidereal positions are added.",
+  "The full per-item catalog must be authored into config (SPEC-010), since Claude Code cannot see any external source.",
+]
+followups = [
+  "SPEC-010: star-context config files, computation, message unit, acceptance.",
+  "SPEC-011 (later): extend the web sky view with star context, parallel to SPEC-009.",
+  "Later section: comets and The Spark (apparitions).",
+]
+
+[links]
+requirements = ["REQ-FUN-007"]
+dds = ["DD-0002","DD-0004"]

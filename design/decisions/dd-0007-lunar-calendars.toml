@@ -1,0 +1,87 @@
+id     = "DD-0007"
+title  = "Lunar calendars and co-fullness tracking"
+status = "accepted"
+date   = "2026-06-07"
+
+[context]
+problem = """
+The world has a few lunar calendars and a widespread interest in co-fullness -
+nights when several moons are full at once. This DD fixes the model: which
+cultures reckon by which moon, how a lunar date and its Round are structured, how
+the Terpin all-moons calendar works, and how co-fullness is tracked - kept
+deliberately lean.
+"""
+constraints = [
+  "Reuse existing machinery: synodic periods are already derived and co_fullness is already a predicate (REQ-FUN-004). The net new work is a thin counting layer over per-moon full-moon schedules.",
+  "The slow luni-solar correspondence (the Round) keys to the AstroYear, not to the Fatunik or Terpin civil calendars; no pulse<->calendar or calendar<->calendar conversion is used.",
+  "Pure lunar reckoning drifts against the seasons; that is intended.",
+  "All authored data is captured in config.",
+]
+alternatives = [
+  "A full luni-solar hybrid calendar - deferred: no group needs it dramatically yet; the architecture leaves a slot.",
+  "Per-tradition near-full tolerances - rejected: a single villager-style understanding (one day either side of true full) is used everywhere.",
+  "Weighting the Terpin mean by moon size or brightness - rejected: the plain arithmetic mean is simpler and faction-neutral.",
+]
+
+[decision]
+summary = """
+1. One underlying computation: each moon has a full-moon series (the pulses where
+   its synodic phase is 0.5). Every lunar calendar and the co-fullness tracker are
+   views over these series. Co-fullness uses the eight real moons only.
+2. Single-moon calendars - a month is one synodic cycle of the chosen moon; dates
+   count from the calendar's epoch:
+   - Untamed (rabbit-wolf-sint alliance): Sella; 12-month turns; with Round.
+   - Rabbit-sints: Shunna; 21-month turns; with Round.
+   - Dog-sints: Jembor; no turns - a running lunation count plus day, no Round.
+3. Terpin all-moons calendar: a month is the arithmetic mean of all eight moons'
+   synodic cycles (a ~32-day mean month); 12-month turns; with Round. The mean
+   moon is a bookkeeping unit belonging to none, used only for this calendar's
+   months, not for co-fullness.
+4. The Round is the slow luni-solar cycle: the number of turns after which a
+   calendar realigns with the AstroYear (the smallest whole turn count landing on
+   a whole number of AstroYears within a tolerance). A turn-based date reports a
+   long count (Rounds since epoch) and short count (turn within the Round). The
+   Round length is computed from the synodic period, months per turn, and
+   AstroYear, and recorded. Worked through: Untamed ~32 turns, Rabbits ~52,
+   Terpin ~23 (derived, approximate).
+5. Near-full is one global, villager-style rule: within one day of true full
+   (synodic phase 0.5). Because moons differ in speed, the engine converts the
+   one-day window into each moon's own phase tolerance.
+6. Co-fullness tracking is a query, not a calendar: over a date range it returns
+   the nights with at least the configured minimum of moons within the near-full
+   window, with the count, the moons, and the date in solar terms. No epoch.
+   Trusted records run roughly from the Fatunik solar epoch forward (Terpinol
+   Academy, Night Hall Library); the computation is unbounded.
+7. Epochs are authored Astro pulses anchored to the existing solar-epoch
+   constants: the Terpin lunar calendar near the Terpin solar epoch; the sint
+   calendars after the Fatunik solar epoch, the Untamed latest.
+"""
+rationale = """
+Building the per-moon full-moon series once and reading it as calendars and as a
+co-fullness overlay keeps the section small and consistent. The Round gives a
+simple, recorded long/short count without an intercalation scheme, and keying it
+to the AstroYear keeps it astronomical and clear of civil-calendar conversions.
+The mean-moon Terpin calendar is mathematical, simple, and neutral, matching the
+culture.
+"""
+
+[consequences]
+positive = [
+  "Lunar calendars and co-fullness share one lean computation.",
+  "The Round is a recorded, deterministic long/short count with no intercalation machinery.",
+  "A single near-full rule keeps co-fullness unambiguous across the Lands.",
+  "Adding a luni-solar hybrid later needs no rework.",
+]
+negative = [
+  "The Round length is approximate (a small secular residual remains, which scholars would themselves track); it is recorded per calendar.",
+  "Lunar-epoch pulse values are authored against the existing solar-epoch constants and must be set at authoring time.",
+  "Per-culture names for the Round, names for rare high-count co-fullness nights, and the dogs' running-count naming are lore still to be authored.",
+]
+followups = [
+  "SPEC-012: full-moon-series core, the four lunar calendars, the Round computation, co-fullness tracking, message units, acceptance.",
+  "Lore: per-culture Round names; names for rare high-count co-fullness nights; the dog-sints' running-count naming.",
+]
+
+[links]
+requirements = ["REQ-FUN-008","REQ-FUN-004"]
+dds = ["DD-0002"]

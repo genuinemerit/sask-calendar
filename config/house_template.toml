@@ -1,0 +1,12 @@
+# /config/house_template.toml - meta-schema for House records (DD-0005).
+title = "house_of_the_equinox"
+[fields]
+id          = { required = true,  type = "string" }
+name        = { required = true,  type = "string" }
+type        = { required = true,  type = "string", enum = ["seasonal","circumpolar"] }
+shape       = { required = true,  type = "string" }
+lore        = { required = false, type = "string" }
+order       = { required = false, type = "int" }     # seasonal only, 1..12
+season_span = { required = false, type = "string" }  # seasonal only
+personality = { required = false, type = "array" }   # seasonal only
+stars       = { required = false, type = "array" }   # member fixed stars, if any

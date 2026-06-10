@@ -1,0 +1,15 @@
+# /config/star_template.toml - meta-schema for fixed-star records (DD-0005).
+title = "fixed_star"
+[fields]
+id         = { required = true,  type = "string" }
+name       = { required = true,  type = "string" }
+season     = { required = true,  type = "string", enum = ["greening","blazing","withering","stillness","perennial"] }
+perennial  = { required = true,  type = "bool" }
+brightness = { required = true,  type = "string" }
+color      = { required = true,  type = "string" }
+variable   = { required = true,  type = "bool" }
+trait      = { required = true,  type = "string" }
+position   = { required = true,  type = "string" }
+epithet    = { required = false, type = "string" }
+lore       = { required = false, type = "string" }
+house      = { required = false, type = "string" }

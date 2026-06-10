@@ -1,0 +1,73 @@
+id = "DD-0006"
+title = "Apparitions: recurring comets and the Kanka-hosted Spark"
+status = "accepted"
+date = "2026-06-06"
+
+[context]
+problem = """
+This DD freezes the design for the two episodic sky objects - recurring comets
+and The Spark - under the apparition model (DD-0002 principle 7, REQ-FUN-005).
+The prototype duplicated apparitions across lore_events and a force_* astro_events
+file; the decisions here remove the need for forcing entirely.
+"""
+constraints = [
+  "Apparitions are deterministic and reproducible: no live randomness, no global RNG state (REQ-FUN-001, REQ-FUN-005).",
+  "No pulse<->calendar or calendar<->calendar correspondence is used or implied; timing is in Astro pulses/days only.",
+  "Comets are a minor part of the lore - keep them few and lightweight.",
+  "All authored data is captured in config, since Claude Code sees no external source.",
+]
+alternatives = [
+  "One-off authored comet apparitions - dropped: not worth the bother for minor lore.",
+  "Authored Spark sightings on fixed pulses - dropped: appearances are derived from Kanka's spin instead.",
+  "A force_* events file to script apparitions (prototype) - removed: with comets recurring and the Spark derived, nothing is forced, so the lore_events/astro_events duplication dissolves.",
+]
+
+[decision]
+summary = """
+1. Comets are all recurring. Each is defined in config by a period, an epoch
+   offset (fraction of the period elapsed at pulse 0), a visible-duration window
+   around perihelion, and descriptive fields. Appearances are derived
+   (perihelion = epoch + n * period); none are authored. One-off authoring is
+   not supported.
+2. Roster (authored, tweakable): Oloryn (the Long Wanderer, ~80-year period,
+   brilliant); Sevrith (the Teacher's Comet, ~13-year); Kelvarn (faint, ~4.4-year).
+3. The Spark is a singleton apparition object hosted on Kanka, normal visibility
+   zero. Its visibility is derived from Kanka's chaotic, pulse-seeded spin: the
+   ship is parked over one surface point and is glimpsed when that point is
+   carried into night-side view. Each exposure's length is drawn from the same
+   deterministic pulse-seeded generator within a configured range - reproducible,
+   never live randomness. No Spark sightings are authored.
+4. The First Spark - the Agency's arrival at the Astro epoch, recorded only in
+   ancient texts - is lore (carried on the Spark object and in the historical
+   timeline), not a computed apparition. The epoch is pulse 0; the day count
+   begins at 1, so the arrival sits at the very origin.
+5. The Agents can predict every Spark appearance (they model Kanka's spin);
+   ordinary folk cannot. This is lore over the same computed core.
+"""
+rationale = """
+Recurring comets and a spin-derived Spark are both pure functions of pulse and
+config, so the section is deterministic and reproducible with no forcing file and
+no authored apparitions. Hosting the Spark on Kanka makes its irregular,
+unpredictable appearances a consequence of the moon's own chaotic spin rather than
+an arbitrary schedule, and reuses the pulse-seeded generator Kanka already needs.
+Keeping the arrival as lore avoids a special-case mechanic for a one-time event.
+"""
+
+[consequences]
+positive = [
+  "No forcing file; the old lore_events/astro_events duplication is gone by construction.",
+  "Spark appearances are physically motivated by Kanka's spin and fully reproducible.",
+  "Comets stay lean - three records and a small computation.",
+]
+negative = [
+  "The Spark glimmer is an algorithm Claude Code must implement to the SPEC contract.",
+  "Remaining authored lore events (the historical timeline) still want their own pass later, now decoupled from apparitions.",
+]
+followups = [
+  "SPEC-011: apparitions config, recurring-comet computation, the Spark glimmer contract, message unit, acceptance.",
+  "Later: a dedicated authored-events / historical-timeline pass.",
+]
+
+[links]
+requirements = ["REQ-FUN-005"]
+dds = ["DD-0002", "DD-0004"]

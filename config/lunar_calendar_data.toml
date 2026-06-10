@@ -1,0 +1,56 @@
+# /config/lunar_calendar_data.toml - the four lunar calendars (DD-0007).
+# A month is one synodic cycle of `moon` (or the mean of all moons for "mean").
+# epoch_anchor + epoch_offset_days set the epoch as an Astro pulse relative to a
+# solar-epoch constant.
+# Epoch offsets are each near a spring equinox (gavor_frac=0):
+#   Fatunik solar epoch is at summer solstice; first spring equinox after =
+#   0.75 * 365.2422 = 273.93 days; equinox n=3 at ~1369.7d, n=7 at ~2830.6d,
+#   n=24 at ~9039.7d. Small variations applied so no epoch lands exactly on a
+#   round day. Terpin solar epoch IS a spring equinox; offset of 13d stays within
+#   the same equinox year.
+
+[settings]
+realign_tolerance_days = 2.0
+
+[[calendar]]
+id = "untamed"
+name = "The Untamed Reckoning"
+culture = "Untamed (rabbit-wolf-sint alliance)"
+moon = "sella"
+has_turns = true
+months_per_turn = 12
+epoch_anchor = "fatunik_solar_epoch"
+epoch_offset_days = 9044.0
+lore = "The newest of the lunar calendars; the militant alliance claims the brightest moon as its banner."
+
+[[calendar]]
+id = "warren"
+name = "The Warren Count"
+culture = "Rabbit-sints"
+moon = "shunna"
+has_turns = true
+months_per_turn = 21
+epoch_anchor = "fatunik_solar_epoch"
+epoch_offset_days = 2842.0
+lore = "A brisk, fertile reckoning; a 21-month turn runs close to a solar year, so it drifts only slowly."
+
+[[calendar]]
+id = "hearth"
+name = "The Hearth Count"
+culture = "Dog-sints"
+moon = "jembor"
+has_turns = false
+epoch_anchor = "fatunik_solar_epoch"
+epoch_offset_days = 1377.0
+lore = "Slow and unhurried; the dog-sints keep no turns, only an ever-rising count of Jembor's slow full moons."
+
+[[calendar]]
+id = "terpin_lunar"
+name = "The Terpin Lunar Count"
+culture = "Terpin"
+moon = "mean"
+has_turns = true
+months_per_turn = 12
+epoch_anchor = "terpin_solar_epoch"
+epoch_offset_days = 13.0
+lore = "Reckons by the mean of all eight moons - an idealized moon belonging to none; epoch near the Terpin solar epoch."

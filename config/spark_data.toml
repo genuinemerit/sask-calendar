@@ -1,0 +1,24 @@
+# /config/spark_data.toml - the singleton Spark apparition object (DD-0006).
+# Lore: an omen glimpsed near Kanka. Reality: the Agency's starship, parked over
+# one point on Kanka since its arrival at the epoch, carried in and out of view by
+# Kanka's chaotic, pulse-seeded spin. Visibility is fully derived; no sightings
+# are authored. Exposure length is a deterministic pulse-seeded draw, never live
+# randomness.
+
+[spark]
+id = "spark"
+host_moon = "kanka"
+normal_visibility = 0.0
+visibility_source = "kanka_spin_glimmer"
+glimmer_probability = 0.01
+exposure_min_days = 0.5
+exposure_max_days = 3.0
+brightness = "sharp blue-white glint"
+color = "blue-white"
+lore = """
+The First Spark is the Agency's arrival in the Fatunik system at the Astro epoch -
+long before the Saskan Lands were settled, so it survives only in ancient texts.
+Since then the ship has hidden over a fixed point on Kanka, and the Saskan peoples
+know the Spark only as a rare, unpredictable omen-light. The Agents, who model
+Kanka's spin, can predict every appearance.
+"""

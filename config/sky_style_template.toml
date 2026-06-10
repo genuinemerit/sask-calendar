@@ -1,0 +1,10 @@
+# /config/sky_style_template.toml - meta-schema for image-prompt styles (DD-0008).
+title = "sky_style"
+
+[fields]
+id = { required = true, type = "string" }
+name = { required = true, type = "string" }
+medium = { required = true, type = "string" }
+palette = { required = true, type = "string" }
+composition = { required = true, type = "string" }
+extra = { required = false, type = "string" }

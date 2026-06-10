@@ -1,0 +1,13 @@
+# /config/comet_template.toml - meta-schema for recurring comets (DD-0006).
+title = "comet"
+
+[fields]
+id = { required = true, type = "string" }
+name = { required = true, type = "string" }
+period_days = { required = true, type = "float" }
+epoch_offset = { required = true, type = "float" }
+visible_duration_days = { required = true, type = "float" }
+brightness = { required = true, type = "string" }
+color = { required = true, type = "string" }
+tail = { required = true, type = "string" }
+lore = { required = false, type = "string" }

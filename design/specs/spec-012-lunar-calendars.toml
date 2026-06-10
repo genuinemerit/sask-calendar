@@ -1,0 +1,78 @@
+id="SPEC-012"
+title="Lunar calendars and co-fullness tracking"
+status="proposed"
+
+[implements]
+requirements=["REQ-FUN-008","REQ-FUN-004"]
+dds=["DD-0007","DD-0002"]
+
+[scope]
+in_scope=[
+  "Config for the four lunar calendars and the co-fullness tracker, with the lunar-calendar meta-schema.",
+  "A shared full-moon-series core: per moon, the full-moment pulses (synodic phase 0.5) and a near-full test within the global one-day tolerance.",
+  "Per-calendar lunar date computation: lunation, day, and (turn-based) month, turn, Round long/short count.",
+  "The Round computation: the recorded number of turns that realigns a calendar with the AstroYear within tolerance.",
+  "The co-fullness tracking query over a date range, using the eight real moons.",
+  "The lunar_date and co_fullness_event message units.",
+]
+out_of_scope=[
+  "A luni-solar hybrid calendar.",
+  "Per-tradition near-full tolerances.",
+  "Web display of lunar dates or co-fullness (later).",
+  "Any pulse<->calendar or calendar<->calendar correspondence; only the AstroYear (astronomical) is used for the Round.",
+]
+
+[deliverables]
+config=[
+  "/config/lunar_calendar_template.toml and /config/lunar_calendar_data.toml - the four calendars and Round-tolerance setting.",
+  "/config/cofullness_data.toml - the near-full tolerance, minimum count, and trusted-coverage anchor.",
+]
+full_moon_core="""
+For a moon, the synodic period is derived from its sidereal period and the
+AstroYear (1/T_syn = 1/T_sid - 1/AstroYear). For the Terpin calendar the moon is
+'mean': use the arithmetic mean of all eight moons' synodic periods. A full-moment
+is where synodic phase = 0.5. near_full(moon, pulse) is true when the pulse is
+within full_tolerance_days of a full-moment; the day window is converted to that
+moon's phase tolerance (full_tolerance_days / T_syn). Pure functions of pulse and
+config.
+"""
+lunar_date="""
+get_lunar_date(pulse, calendar) is pure:
+- lunation = completed synodic cycles of the calendar's moon since epoch_pulse;
+  day = day within the current cycle.
+- If has_turns: month = lunation mod months_per_turn (1-based);
+  turn = lunation div months_per_turn; round_turns = recorded Round length;
+  short_count = turn mod round_turns (1-based); long_count = turn div round_turns.
+- If not has_turns (Jembor/dogs): report lunation and day only; no month, turn, or Round.
+The Round length is computed once per turn-based calendar as the smallest whole
+turn count K>=1 with |K*turn_days - round(K*turn_days/AstroYear)*AstroYear|
+<= realign_tolerance_days, and recorded. epoch_pulse resolves epoch_anchor (a
+solar-epoch constant) plus epoch_offset_days.
+"""
+cofullness="""
+get_cofullness(start_pulse, end_pulse) returns, for each night in range where the
+count of the eight real moons with near_full true is >= min_moons: the pulse, the
+count, the moon ids, and the date rendered in the solar calendars via the existing
+translators. A tracker, not a calendar; no epoch. Unbounded in principle; lore
+coverage begins roughly at coverage_anchor.
+"""
+message_units="""
+lunar_date (snake_case, validated):
+  pulse, calendar_id, has_turns, lunation, day,
+  month, turn, short_count, long_count          # null when has_turns is false
+co_fullness_event (snake_case, validated):
+  pulse, count, moons[], solar_dates             # solar_dates via translators
+Absent optionals are null, never the string 'n/a'; no field mixes types.
+"""
+
+[acceptance]
+checks=[
+  "A month equals one synodic cycle of the calendar's moon; the Terpin month equals the mean of the eight synodic cycles.",
+  "Turn-based dates report long count, short count, turn, month, day; the recorded Round length realigns turns with the AstroYear within tolerance.",
+  "The dog (Jembor) calendar reports a running lunation count and day only, with null turn and Round fields.",
+  "near_full is true exactly within one day of a moon's full-moment, using each moon's own phase tolerance.",
+  "Co-fullness lists every night in range with at least min_moons near-full moons among the eight real moons, with the moons and solar date; counts rise correctly as more moons coincide.",
+  "Dropping caches and recomputing yields identical lunar dates and co-fullness results; nothing uses live randomness.",
+  "Changing a civil-calendar definition leaves lunar dates and co-fullness unchanged for a fixed pulse.",
+  "All calendar and tracker config, including moon assignments and tolerances, is read from config.",
+]

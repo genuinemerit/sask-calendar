@@ -1,0 +1,38 @@
+# /config/comet_data.toml - the three recurring comets. Authored data (DD-0006).
+# Visible for visible_duration_days around each perihelion; perihelion times =
+# (n + epoch_offset) * period. epoch_offset is the fraction of the period elapsed
+# at Astro pulse 0. Year figures are approximate (period_days / 365.2422), for
+# readability only.
+
+[[comet]]
+id = "oloryn"
+name = "Oloryn"
+period_days = 29200.0
+epoch_offset = 0.37
+visible_duration_days = 40.0
+brightness = "brilliant"
+color = "white-gold"
+tail = "A vast sweeping tail across a quarter of the sky."
+lore = "The Long Wanderer. Returns once in a long lifetime; old texts read its coming as a herald of great change."
+
+[[comet]]
+id = "sevrith"
+name = "Sevrith"
+period_days = 4750.0
+epoch_offset = 0.81
+visible_duration_days = 22.0
+brightness = "modest"
+color = "pale blue-green"
+tail = "A short, neatly fanned tail."
+lore = "The Teacher's Comet; most folk see it twice in a life and reckon their years by it."
+
+[[comet]]
+id = "kelvarn"
+name = "Kelvarn"
+period_days = 1600.0
+epoch_offset = 0.14
+visible_duration_days = 12.0
+brightness = "faint"
+color = "dull copper"
+tail = "A stubby smudge of a tail, easily missed."
+lore = "Common enough to pass unremarked except by skywatchers, who greet it like an old dog."

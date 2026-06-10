@@ -1,0 +1,121 @@
+# /config/star_data.toml - the sixteen fixed stars. Authored data (DD-0005).
+# Visible when `season` matches the current season; perennial = always visible.
+
+[[star]]
+id="ilyrun"; name="Ilyrun"; epithet="the Pole Star"
+season="perennial"; perennial=true
+brightness="brightest"; color="steady white"; variable=false
+trait="Unblinking, never twinkles; the fixed anchor of the north."
+position="The Pole Star, unwavering in the true north."
+lore="Sacred to navigators and mystics; 'the eye that never closes.'"
+house="watchers_of_stillness"
+
+[[star]]
+id="kresh"; name="Kresh"; epithet="the Hinge / the Ladle"
+season="perennial"; perennial=true
+brightness="faint scatter"; color="pale silver"; variable=false
+trait="A loose scatter of faint points that swings around Ilyrun like a tipping ladle."
+position="To the left of Ilyrun, rising and dipping like a kettle."
+house="watchers_of_stillness"
+
+[[star]]
+id="marnok"; name="Marnok"; epithet="the Claw Below"
+season="perennial"; perennial=true
+brightness="medium-faint"; color="dull amber-red"; variable=false
+trait="Low and brooding beneath the pole; a marker for north-bound travel."
+position="Below Ilyrun, clawing at the trees of the high north."
+house="chain_of_four"
+
+[[star]]
+id="sethera"; name="Sethera"; epithet="the Gathering Star"
+season="perennial"; perennial=true
+brightness="medium"; color="soft gold"; variable=false
+trait="Folk confuse it for a wanderer - superstition, not fact; it is not on the planets' path."
+position="To the right of Ilyrun, where wanderers seem to gather."
+house="chain_of_four"
+
+[[star]]
+id="thalona"; name="Thalona"
+season="greening"; perennial=false
+brightness="bright"; color="green-white"; variable=false
+trait="A clear, welcoming herald of the sowing season."
+position="In the east, just above the sowing fields."
+
+[[star]]
+id="tursin"; name="Tursin"
+season="greening"; perennial=false
+brightness="medium"; color="blue-white"; variable=false
+trait="A modest, steady marker."
+position="In the northeast, halfway to the pole star."
+
+[[star]]
+id="velkora"; name="Velkora"
+season="greening"; perennial=false
+brightness="faint"; color="white"; variable=false
+trait="A double star - two close points that keen eyes split apart."
+position="In the west-northwest, between the Split Peaks."
+
+[[star]]
+id="mirrest"; name="Mirrest"
+season="blazing"; perennial=false
+brightness="very bright"; color="blue-white"; variable=false
+trait="A fierce, hot blaze, nearly rivaling Ilyrun."
+position="In the south-southeast, blazing over the old hills."
+
+[[star]]
+id="zomel"; name="Zomel"
+season="blazing"; perennial=false
+brightness="dim"; color="smoky red-orange"; variable=false
+trait="Often half-veiled by cloud, hard to catch."
+position="Low in the southwest, near the veil of clouds."
+
+[[star]]
+id="saurnak"; name="Saurnak"
+season="blazing"; perennial=false
+brightness="medium-bright"; color="warm amber"; variable=false
+trait="Steady and constant."
+position="In the south, tucked near the Lantern Grove."
+house="lantern_grove"
+
+[[star]]
+id="krenna"; name="Krenna"
+season="withering"; perennial=false
+brightness="medium"; color="pale gold"; variable=false
+trait="Fades low in the west as the sun lingers."
+position="In the west, near the horizon where the sun lingers."
+house="loom_of_krenna"
+
+[[star]]
+id="ethranel"; name="Ethranel"
+season="withering"; perennial=false
+brightness="medium-bright"; color="sharp white"; variable=false
+trait="A dawn-riser, herald of the turning year."
+position="In the east-northeast, just before dawn."
+
+[[star]]
+id="henmae"; name="Henmae"
+season="withering"; perennial=false
+brightness="medium"; color="deep blood-red"; variable=true
+trait="A variable that visibly dims and brightens; heavy with omen."
+position="In the west-southwest, red and near the harvest haze."
+
+[[star]]
+id="aghur"; name="Aghur"
+season="stillness"; perennial=false
+brightness="bright"; color="cold blue-white"; variable=false
+trait="Glitters and flashes hard in the frozen air."
+position="In the north-northeast, low above the frostline."
+
+[[star]]
+id="boreth"; name="Boreth"
+season="stillness"; perennial=false
+brightness="medium"; color="steady white"; variable=false
+trait="A reliable northern marker by the North Watch."
+position="High in the northern sky, just east of the North Watch."
+
+[[star]]
+id="droven"; name="Droven"
+season="stillness"; perennial=false
+brightness="faint"; color="pale"; variable=true
+trait="A slow variable that swells through the night-watches."
+position="Rising in the east with the third bell of night."
