@@ -200,13 +200,6 @@ def sky() -> str:
     ppd = cfg.time_constants.pulses_per_day
     pulse, error = _resolve_pulse(cfg)
 
-    # When input is a date (not a direct pulse or Astro day), snap to deep night (2 AM)
-    if pulse is not None and not (
-        request.args.get("pulse") or request.args.get("astro_day")
-    ):
-        midnight = (pulse // ppd) * ppd
-        pulse = midnight + 2 * 3600
-
     scene = None
     lunar_entries = None
     si = None

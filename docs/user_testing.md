@@ -675,3 +675,366 @@ Additional notes:
 
 Stop the Flask server with `Ctrl+C` in the VM terminal. Close the SSH tunnel
 terminal.
+
+---
+
+## SPEC-014 — Unified sky-for-a-date web view
+
+SPEC-014 adds a **/sky** page that presents all date formats (including the four
+lunar calendars, display-only) and the complete sky scene for a chosen pulse or
+solar date: season, moons, wanderers, comets and the Spark, fixed stars and the
+Houses of the Equinox, co-fullness, the night summary, and the image prompt.
+
+### SPEC-014 Setup
+
+Same as SPEC-009. If the Flask server is already running, skip to step 3.
+
+**1. Open an SSH tunnel from the Ubuntu host:**
+
+```bash
+ssh -L 5000:localhost:5000 sask-dev
+```
+
+Keep this terminal open.
+
+**2. In the VM session, start the Flask development server:**
+
+```bash
+cd ~/Code/sask-calendar
+bash tools/start_web.sh
+```
+
+Expected output: `Running on http://127.0.0.1:5000`
+
+**3. Open a browser on the Ubuntu host. The page under test is:**
+
+```text
+http://localhost:5000/sky
+```
+
+**Reference pulses used in the test cases below:**
+
+| Label | Pulse | Meaning |
+|---|---|---|
+| Epoch | `0` | Astro midnight, spring equinox; Greening, near Green Day |
+| Story now | `104548096103` | Fatunik T1782 M10 D29, Terpin T2271 M2 D2; Stillness, near Green Day; 09:48:23 Astro |
+| Fatunik day start | `104548082400` | Fatunik T1782 M10 D29 at 06:00:00 Astro (natural Fatunik day start) |
+| First co-fullness | `432000` | Fatunik T-1531 M11 D4; sella + lelako + shunna near-full |
+
+---
+
+### SPEC-014 Test cases
+
+#### TC-014-01 — Navigation bar includes Sky link on all pages
+
+**Action:** Load each of the four pages (`/`, `/moons`, `/planets`, `/sky`) in turn.
+
+**Pass criteria:**
+
+- Every page renders a navigation bar containing four links:
+  **Pulse**, **Moons**, **Planets**, and **Sky**.
+- The **Sky** link navigates to `/sky`.
+- Existing pages (Pulse, Moons, Planets) remain functional as in SPEC-005
+  and SPEC-009.
+
+---
+
+#### TC-014-02 — Sky landing page loads with no query
+
+**Action:** Navigate to `http://localhost:5000/sky` with no query parameters.
+
+**Pass criteria:**
+
+- HTTP 200; page title contains "Sky".
+- Four input sections are rendered: **Enter pulse**, **Or Astro day**,
+  **Or Fatunik date**, and **Or Terpin date**.
+- No results panels are rendered.
+- No error message is shown.
+- No `<script>` tag in the page source.
+
+---
+
+#### TC-014-03 — Sky at story_now_pulse: all panels render
+
+**Action:** Navigate to `http://localhost:5000/sky?pulse=104548096103`.
+
+**Pass criteria:**
+
+- HTTP 200; no error message.
+- All of the following section headings are present on the page:
+  - Lunar Calendars (with a "display-only" annotation)
+  - Season
+  - Moons Above the Horizon (or a "no moons" notice)
+  - Wanderers Above the Horizon (or a "no wanderers" notice)
+  - Fixed Stars & Houses of the Equinox
+  - Co-fullness
+  - Night Summary
+  - Image Prompt
+
+---
+
+#### TC-014-04 — Date fields and time display at story_now_pulse
+
+**Action:** Navigate to `/sky?pulse=104548096103`.
+
+**Pass criteria:**
+
+- Astro Day input shows **1210048**; the time displayed next to the Query
+  button shows **09:48:23**.
+- Fatunik date inputs show year **1782**, month **10**, day **29**.
+- Terpin date inputs show year **2271**, month **2**, day **2**.
+
+---
+
+#### TC-014-05 — All four lunar calendars displayed
+
+**Action:** Navigate to `/sky?pulse=104548096103`.
+
+**Pass criteria:**
+
+- The **Lunar Calendars** table contains exactly four rows, one each for:
+  the Untamed Reckoning (moon: Sella), the Warren Count (moon: Shunna),
+  the Hearth Count (moon: Jembor), and the Terpin Lunar Count (moon: Mean).
+- Each row shows non-empty Day and Lunation values.
+- Untamed, Warren, and Terpin Lunar rows show non-empty Turn and Month integers.
+- The Hearth Count row shows "—" for Long Count, Short Count, Turn, and Month
+  (the Hearth calendar tracks no turns).
+
+---
+
+#### TC-014-06 — Lunar calendars are display-only (no lunar input fields)
+
+**Action:** On the `/sky` landing page (no query), view the page source
+(Ctrl+U or DevTools → Sources).
+
+**Pass criteria:**
+
+- The only `<input>` field names present are: `pulse`, `astro_day`,
+  `fatunik_year`, `fatunik_month`, `fatunik_day`,
+  `terpin_year`, `terpin_month`, `terpin_day`.
+- No input fields named after any lunar calendar (e.g. `untamed_year`,
+  `warren_month`, `lunar_day`) appear anywhere in the HTML.
+
+---
+
+#### TC-014-07 — Season panel
+
+**Action:** Navigate to `/sky?pulse=104548096103`.
+
+**Pass criteria:**
+
+- The **Season** section shows **Stillness**.
+- The near-event annotation **Green Day** appears (story_now is verging on
+  the spring equinox).
+
+---
+
+#### TC-014-08 — Moons above the horizon with drill-down links
+
+**Action:** Navigate to `/sky?pulse=104548096103`.
+
+**Pass criteria:**
+
+- The **Moons Above the Horizon** table lists at least Endor, Lelako, and Shunna.
+- Each moon name is a hyperlink pointing to `/moons?pulse=104548096103`.
+- Each row shows non-empty Color, Phase, Direction, and Brightness values.
+- Clicking a moon name navigates to the `/moons` page for that pulse and shows
+  that moon's detail row.
+
+---
+
+#### TC-014-09 — Wanderers above the horizon with drill-down links
+
+**Action:** Navigate to `/sky?pulse=104548096103`.
+
+**Pass criteria:**
+
+- The **Wanderers Above the Horizon** table lists at least
+  Aesthra, Lethra, Beyarus, Thurnak, Zelven, and Kreetha.
+- Each planet name is a hyperlink pointing to `/planets?pulse=104548096103`.
+- Each row shows non-empty Color, Phase, Direction, and Brightness values.
+- Clicking a planet name navigates to the `/planets` page for that pulse.
+
+---
+
+#### TC-014-10 — Fixed stars and Houses of the Equinox panel
+
+**Action:** Navigate to `/sky?pulse=104548096103`.
+
+**Pass criteria:**
+
+- An **Active house** line appears, showing **The Winged Pollinator**.
+- A stars table is rendered listing at least the following visible stars:
+  Ilyrun, Kresh, Marnok, Sethera, Aghur, Boreth, Droven.
+- Each star row shows a direction or position description.
+
+---
+
+#### TC-014-11 — Co-fullness section: next event always shows
+
+**Action:** Navigate to `/sky?pulse=104548096103`.
+
+**Pass criteria:**
+
+- The **Co-fullness** section renders.
+- A **Next event** line appears giving a day count (non-negative integer)
+  and at least two moon names.
+- No Python error or missing-data placeholder is shown.
+
+---
+
+#### TC-014-12 — Co-fullness tonight at a known event
+
+**Action:** Navigate to `/sky?pulse=432000` (Fatunik T-1531 M11 D4 — the
+first co-fullness midnight in the calendar).
+
+**Pass criteria:**
+
+- The **Tonight** indicator appears in the Co-fullness section.
+- The count is **3** and the moons listed include **sella**, **lelako**,
+  and **shunna**.
+
+---
+
+#### TC-014-13 — Night summary is deterministic prose
+
+**Action:** Navigate to `/sky?pulse=104548096103`.
+
+**Pass criteria:**
+
+- The **Night Summary** section renders a paragraph of human-readable prose.
+- The text references the season (Stillness) or at least one sky body visible
+  at that pulse.
+- Reload the same URL: the prose is byte-for-byte identical to the first load.
+
+---
+
+#### TC-014-14 — Image prompt contains style directives
+
+**Action:** Navigate to `/sky?pulse=104548096103`.
+
+**Pass criteria:**
+
+- The **Image Prompt** section renders text in a monospace (pre-formatted) block.
+- The block contains the phrase **Image style:** followed by style directive text.
+
+---
+
+#### TC-014-15 — Fatunik date input shows Fatunik day start time
+
+**Action:** On the `/sky` page, enter Fatunik year **1782**, month **10**,
+day **29** and click **Query**.
+
+**Pass criteria:**
+
+- HTTP 200; no error message.
+- The time shown next to the Astro Day field is **06:00:00** (the Fatunik
+  calendar day starts at 6 AM Astro).
+- The Fatunik date in the input fields shows **T1782 M10 D29** — same as
+  the input date (no day-offset artifact).
+- All sky panels render with plausible content for that pulse.
+
+---
+
+#### TC-014-16 — Terpin date input shows Terpin day start time
+
+**Action:** On the `/sky` page, enter Terpin year **2271**, month **2**,
+day **2** and click **Query**.
+
+**Pass criteria:**
+
+- HTTP 200; no error message.
+- The time shown next to the Astro Day field is **00:00:00** (the Terpin
+  calendar day starts at Astro midnight).
+- The Terpin date in the input fields shows **T2271 M2 D2** — same as the
+  input date.
+- Lunar Calendars table is populated with non-empty lunation values.
+
+---
+
+#### TC-014-17 — Astro day input is not snapped
+
+**Action:** On the `/sky` page, enter Astro day **1** and click **Query**.
+
+**Pass criteria:**
+
+- HTTP 200; no error message.
+- Astro Day input shows **1**; time next to the Query button shows **00:00:00**
+  (pulse 0; Astro day input uses midnight directly, no calendar-start offset).
+- Fatunik date: **T-1531 M10 D29**; Terpin date: **T-1042 M1 D4**.
+- Season: **Greening**, near **Green Day**.
+
+---
+
+#### TC-014-18 — URL bookmarkability: reload reproduces the same view
+
+**Action:**
+
+1. Navigate to `/sky?pulse=104548096103`.
+2. Note the Active house name and one Lunation value from the lunar table.
+3. Copy the full URL from the address bar and open it in a new browser tab.
+
+**Pass criteria:**
+
+- The new tab renders an identical page: same date values, same Active house,
+  same lunation values, same night summary prose.
+- The pulse input field is populated with `104548096103`.
+
+---
+
+#### TC-014-19 — Invalid pulse shows a user-visible error
+
+**Action:** Navigate to `/sky?pulse=notanumber`.
+
+**Pass criteria:**
+
+- HTTP 200 (no 500 error page).
+- An inline error message appears (e.g. *"Invalid pulse value"*).
+- No sky panels are rendered.
+
+---
+
+#### TC-014-20 — Page source contains no JavaScript
+
+**Action:** With a valid result rendered at `/sky?pulse=104548096103`, view the
+HTML source (Ctrl+U or browser DevTools → Sources).
+
+**Pass criteria:**
+
+- No `<script>` tag appears anywhere in the HTML source.
+- No `javascript:` URI appears in any attribute.
+- The only embedded code is the `<style>` block in `<head>`.
+
+---
+
+### SPEC-014 Results — (to be completed after testing)
+
+| TC | Result | Notes |
+|---|---|---|
+| TC-014-01 | Pass | |
+| TC-014-02 | Pass | |
+| TC-014-03 | Possible error | Refactoring requests |
+| TC-014-04 | | |
+| TC-014-05 | | |
+| TC-014-06 | | |
+| TC-014-07 | | |
+| TC-014-08 | | |
+| TC-014-09 | | |
+| TC-014-10 | | |
+| TC-014-11 | | |
+| TC-014-12 | | |
+| TC-014-13 | | |
+| TC-014-14 | | |
+| TC-014-15 | | |
+| TC-014-16 | | |
+| TC-014-17 | | |
+| TC-014-18 | | |
+| TC-014-19 | | |
+| TC-014-20 | | |
+
+---
+
+### SPEC-014 Teardown
+
+Stop the Flask server with `Ctrl+C` in the VM terminal. Close the SSH tunnel
+terminal.

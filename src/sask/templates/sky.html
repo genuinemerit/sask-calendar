@@ -21,6 +21,7 @@
     <input type="number" id="astro_day" name="astro_day" step="1" min="1"
            value="{{ queried_astro_day if queried_astro_day is not none else '' }}">
     <button type="submit">Query</button>
+    {% if scene %}&ensp;<span style="color:#555; font-size:.9rem;">{{ time_of_day }}</span>{% endif %}
   </fieldset>
 </form>
 <form method="get" action="/sky">
@@ -59,17 +60,6 @@
 {% endif %}
 
 {% if scene %}
-
-<h2>Date &amp; Time</h2>
-<table style="width:auto">
-  <tbody>
-    <tr><th>Astro</th><td>Day {{ queried_astro_day }}, {{ time_of_day }}</td></tr>
-    <tr><th>Fatunik</th>
-        <td>T{{ fatunik_date.year }}&nbsp;M{{ fatunik_date.month }}&nbsp;D{{ fatunik_date.day }}</td></tr>
-    <tr><th>Terpin</th>
-        <td>T{{ terpin_date.year }}&nbsp;M{{ terpin_date.month }}&nbsp;D{{ terpin_date.day }}</td></tr>
-  </tbody>
-</table>
 
 <h2>Lunar Calendars <span class="meta">(display-only)</span></h2>
 <table>
@@ -112,7 +102,7 @@
       <td>{{ b.color }}</td>
       <td>{{ b.phase }}</td>
       <td>{{ b.direction }}</td>
-      <td>{{ "%.3f" | format(b.brightness) }}</td>
+      <td>{% if b.brightness >= 0.9 %}Brilliant{% elif b.brightness >= 0.7 %}Bright{% elif b.brightness >= 0.45 %}Moderate{% elif b.brightness >= 0.2 %}Faint{% else %}Dim{% endif %}</td>
     </tr>
     {% endfor %}
   </tbody>
@@ -134,7 +124,7 @@
       <td>{{ b.color }}</td>
       <td>{{ b.phase }}</td>
       <td>{{ b.direction }}</td>
-      <td>{{ "%.3f" | format(b.brightness) }}</td>
+      <td>{% if b.brightness >= 0.9 %}Brilliant{% elif b.brightness >= 0.7 %}Bright{% elif b.brightness >= 0.45 %}Moderate{% elif b.brightness >= 0.2 %}Faint{% else %}Dim{% endif %}</td>
     </tr>
     {% endfor %}
   </tbody>
