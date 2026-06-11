@@ -21,6 +21,7 @@
     <input type="number" id="astro_day" name="astro_day" step="1" min="1"
            value="{{ queried_astro_day if queried_astro_day is not none else '' }}">
     <button type="submit">Query</button>
+    {% if moon_views %}&ensp;<span style="color:#555; font-size:.9rem;">{{ time_of_day }}</span>{% endif %}
   </fieldset>
 </form>
 <form method="get" action="/moons">

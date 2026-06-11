@@ -86,10 +86,10 @@ def get_sky_scene(pulse: int, config: AppConfig) -> SkyScene:
 
     bodies_up: list[BodyInScene] = []
 
-    # Moons and planets above the horizon (SPEC-007/008)
+    # Moons and planets above the horizon and visually detectable (SPEC-007/008)
     for bs in body_states:
         sp = sky_pos_map[bs.name]
-        if not sp.above_horizon:
+        if not sp.above_horizon or not bs.is_visible:
             continue
         bodies_up.append(
             BodyInScene(

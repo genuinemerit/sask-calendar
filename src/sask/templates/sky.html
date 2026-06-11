@@ -86,9 +86,6 @@
   </tbody>
 </table>
 
-<h2>Season</h2>
-<p>{{ si.name }}{% if si.near_event_name %} — near <strong>{{ si.near_event_name }}</strong>{% endif %}</p>
-
 <h2>Moons Above the Horizon</h2>
 {% if moons_up %}
 <table>
@@ -110,6 +107,23 @@
 {% else %}
 <p class="meta">No moons above the horizon at this time.</p>
 {% endif %}
+
+<h2>Co-fullness</h2>
+{% if scene.co_fullness_tonight %}
+<p><strong>Tonight:</strong>
+  {{ scene.co_fullness_tonight.count }}
+  moon{{ 's' if scene.co_fullness_tonight.count != 1 else '' }} near-full together —
+  {{ scene.co_fullness_tonight.moons | join(", ") }}
+</p>
+{% else %}
+<p>No co-fullness event tonight.</p>
+{% endif %}
+<p><strong>Next event:</strong>
+  in {{ cofullness_days }} day{{ 's' if cofullness_days != 1 else '' }} —
+  {{ scene.next_co_fullness.count }}
+  moon{{ 's' if scene.next_co_fullness.count != 1 else '' }}:
+  {{ scene.next_co_fullness.moons | join(", ") }}
+</p>
 
 <h2>Wanderers Above the Horizon</h2>
 {% if planets_up %}
@@ -153,6 +167,9 @@
 </table>
 {% endif %}
 
+<h2>Season</h2>
+<p>{{ si.name }}{% if si.near_event_name %} — near <strong>{{ si.near_event_name }}</strong>{% endif %}</p>
+
 <h2>Fixed Stars &amp; Houses of the Equinox</h2>
 <p>
   <strong>Active house:</strong> {{ scene.active_house.name }}<br>
@@ -173,23 +190,6 @@
 {% else %}
 <p class="meta">No fixed stars visible this season.</p>
 {% endif %}
-
-<h2>Co-fullness</h2>
-{% if scene.co_fullness_tonight %}
-<p><strong>Tonight:</strong>
-  {{ scene.co_fullness_tonight.count }}
-  moon{{ 's' if scene.co_fullness_tonight.count != 1 else '' }} near-full together —
-  {{ scene.co_fullness_tonight.moons | join(", ") }}
-</p>
-{% else %}
-<p>No co-fullness event tonight.</p>
-{% endif %}
-<p><strong>Next event:</strong>
-  in {{ cofullness_days }} day{{ 's' if cofullness_days != 1 else '' }} —
-  {{ scene.next_co_fullness.count }}
-  moon{{ 's' if scene.next_co_fullness.count != 1 else '' }}:
-  {{ scene.next_co_fullness.moons | join(", ") }}
-</p>
 
 <h2>Night Summary</h2>
 <p>{{ night_summary }}</p>

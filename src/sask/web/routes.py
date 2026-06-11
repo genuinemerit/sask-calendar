@@ -122,9 +122,14 @@ def moons() -> str:
     fatune_pos = None
     fatunik_date = terpin_date = None
     queried_astro_day = None
+    time_of_day = None
 
     if pulse is not None and error is None:
-        queried_astro_day = pulse // cfg.time_constants.pulses_per_day + 1
+        ppd = cfg.time_constants.pulses_per_day
+        queried_astro_day = pulse // ppd + 1
+        day_offset = pulse % ppd
+        h, rem = day_offset // 3600, day_offset % 3600
+        time_of_day = f"{h:02d}:{rem // 60:02d}:{rem % 60:02d}"
         all_states = all_body_states(pulse, cfg)
         all_positions = all_sky_positions(pulse, all_states, cfg)
         fatune_pos = fatune_sky_position(pulse, cfg.gavor, cfg.time_constants)
@@ -144,6 +149,7 @@ def moons() -> str:
         fatune_pos=fatune_pos,
         fatunik_date=fatunik_date,
         terpin_date=terpin_date,
+        time_of_day=time_of_day,
         error=error,
         queried_pulse=pulse,
         queried_astro_day=queried_astro_day,
