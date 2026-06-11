@@ -169,15 +169,28 @@ def get_sky_scene(pulse: int, config: AppConfig) -> SkyScene:
         HouseRef(id=h.id, name=h.name) for h in sc.circumpolar_houses
     )
 
-    # Co-fullness tonight and next (SPEC-012)
+    # Co-fullness this Astro day and next (SPEC-012)
     ppd = config.time_constants.pulses_per_day
     today_midnight = (pulse // ppd) * ppd
 
-    tonight_events = get_cofullness(today_midnight, today_midnight, config)
+    tonight_events = get_cofullness(today_midnight, today_midnight + ppd - 1, config)
     co_fullness_tonight: CofullnessTonightRef | None = None
     if tonight_events:
         ev = tonight_events[0]
-        co_fullness_tonight = CofullnessTonightRef(count=ev.count, moons=ev.moons)
+        # Observable if any near-full moon is already above the horizon or will
+        # rise before the end of the current Astro day (±1-synodic-day tolerance
+        # means it will still be near-full when it rises).
+        observable = any(
+            sky_pos_map[mid.capitalize()].above_horizon
+            or (
+                sky_pos_map[mid.capitalize()].rise_pulse is not None
+                and sky_pos_map[mid.capitalize()].rise_pulse < today_midnight + ppd
+            )
+            for mid in ev.moons
+        )
+        co_fullness_tonight = CofullnessTonightRef(
+            count=ev.count, moons=ev.moons, observable=observable
+        )
 
     next_start = today_midnight + ppd
     next_events = get_cofullness(next_start, next_start + 5 * 365 * ppd, config)
@@ -241,10 +254,12 @@ def render_night_summary(scene: SkyScene, config: AppConfig) -> str:
     lines.append(house_line)
 
     if scene.co_fullness_tonight:
-        moon_names = ", ".join(scene.co_fullness_tonight.moons)
+        moon_names = ", ".join(m.capitalize() for m in scene.co_fullness_tonight.moons)
         c = scene.co_fullness_tonight.count
+        obs = "" if scene.co_fullness_tonight.observable else " (below the horizon)"
         lines.append(
-            f"Tonight, {c} moon{'s' if c != 1 else ''} ride near-full together: {moon_names}."
+            f"This day, {c} moon{'s' if c != 1 else ''} are near-full together: "
+            f"{moon_names}{obs}."
         )
 
     ppd = config.time_constants.pulses_per_day

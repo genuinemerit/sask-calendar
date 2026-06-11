@@ -201,10 +201,15 @@ class HouseRef:
 
 @dataclass(frozen=True)
 class CofullnessTonightRef:
-    """Co-fullness event occurring tonight, if any (SPEC-013)."""
+    """Co-fullness event occurring this Astro day, if any (SPEC-013).
+
+    observable: True if at least one near-full moon is or will be above the
+    horizon at some point during the current Astro day (midnight-to-midnight).
+    """
 
     count: int
     moons: tuple[str, ...]
+    observable: bool
 
 
 @dataclass(frozen=True)

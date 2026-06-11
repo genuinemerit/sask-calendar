@@ -166,13 +166,13 @@ def test_sky_shows_next_cofullness(client):
     assert b"Next event" in data
 
 
-def test_sky_shows_cofullness_tonight_at_known_event(client):
-    """At a known co-fullness midnight, the 'Tonight' indicator appears."""
+def test_sky_shows_cofullness_this_day_at_known_event(client):
+    """At a known co-fullness midnight, the 'This day' indicator appears."""
     events = get_cofullness(0, 365 * PPD, CONFIG)
     assert events, "Need at least one co-fullness event for this test"
     ev = events[0]
     data = client.get(f"/sky?pulse={ev.pulse}").data
-    assert b"Tonight" in data
+    assert b"This day" in data
 
 
 # ── Night summary & image prompt ──────────────────────────────────────────────

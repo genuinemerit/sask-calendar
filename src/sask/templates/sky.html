@@ -110,19 +110,22 @@
 
 <h2>Co-fullness</h2>
 {% if scene.co_fullness_tonight %}
-<p><strong>Tonight:</strong>
+<p><strong>This day:</strong>
   {{ scene.co_fullness_tonight.count }}
   moon{{ 's' if scene.co_fullness_tonight.count != 1 else '' }} near-full together —
-  {{ scene.co_fullness_tonight.moons | join(", ") }}
+  {{ scene.co_fullness_tonight.moons | map('capitalize') | join(", ") }}
+  {% if not scene.co_fullness_tonight.observable %}
+  <span class="meta">(below the horizon throughout this day)</span>
+  {% endif %}
 </p>
 {% else %}
-<p>No co-fullness event tonight.</p>
+<p>No co-fullness event this day.</p>
 {% endif %}
 <p><strong>Next event:</strong>
   in {{ cofullness_days }} day{{ 's' if cofullness_days != 1 else '' }} —
   {{ scene.next_co_fullness.count }}
   moon{{ 's' if scene.next_co_fullness.count != 1 else '' }}:
-  {{ scene.next_co_fullness.moons | join(", ") }}
+  {{ scene.next_co_fullness.moons | map('capitalize') | join(", ") }}
 </p>
 
 <h2>Wanderers Above the Horizon</h2>
