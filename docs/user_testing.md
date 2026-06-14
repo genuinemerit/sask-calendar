@@ -1428,3 +1428,137 @@ Click **Generate**.
 
 Stop the Flask server with `Ctrl+C` in the VM terminal. Close the SSH tunnel
 terminal.
+
+---
+
+## SPEC-017 — Lore overlays: time-of-day and calendar date rendering
+
+**Branch:** main | **Status:** dev complete, awaiting UAT
+
+### SPEC-017 Setup
+
+Start the Flask server and open an SSH tunnel (same procedure as SPEC-016).
+Navigate to `http://localhost:5000/sky` in the browser.
+
+### Test Cases
+
+#### TC-017-01 — Lore Overlay section appears for story_now
+
+1. Load `/sky` with the story_now pulse (e.g., enter Astro Day 153,828 and press
+   Query, or use the default pulse in the URL).
+2. **Expected:** A "Lore Overlay" table appears below the error area and above
+   the Lunar Calendars table. It contains rows for: Fatunik time, Terpin time,
+   Fatunik Solar, Terpin Solar, and all four lunar calendars (Untamed, Warren,
+   Hearth, Terpin Lunar).
+
+**Pass / Fail:** Pass
+
+#### TC-017-02 — Fatunik and Terpin lore time format
+
+1. Using the story_now query from TC-017-01, inspect the Fatunik time and Terpin
+   time rows.
+2. **Expected:** Both rows show a string matching the pattern
+   `"<Watch Name> Watch . shur <N> : keyt <N>"` (e.g.,
+   `"Third Watch . shur 5 : keyt 3"`). Fatunik and Terpin show different values
+   because their day-start offsets differ (Fatunik at 6 AM, Terpin at midnight).
+
+**Pass / Fail:** Pass
+
+#### TC-017-03 — Fatunik Solar lore date format
+
+1. Using the same query, inspect the Fatunik Solar row in the Lore Overlay table.
+2. **Expected:** The value matches the pattern:
+   `"<day_name>, the <Nth> kell of <month>, Year <N> of <Age Name>"`
+   All names should be from the fatunik_solar.toml config (Sune/Aweth/Morrin/Velden/Hesk
+   for day names, Gleaming for festival month, etc.).
+
+**Pass / Fail:** Pass
+
+#### TC-017-04 — Terpin Solar lore date format
+
+1. Inspect the Terpin Solar row.
+2. **Expected:** Matches `"<day_name>, the <Nth> deshan of <month>, Year <N> of <Age Name>"`.
+   Day names from terpin_solar.toml (Adda/Bessen/Corwen/…). Month from the
+   terpin_solar month list (Omarra/Tessith/Belunna/… or Brennald for festival
+   month 1).
+
+**Pass / Fail:** Pass
+
+#### TC-017-05 — Untamed lore date format
+
+1. Inspect the Untamed row.
+2. **Expected:** Matches `"<quarter>, day <N> of <month>, Range <N> of the Reave <N>"`.
+   Quarter from untamed quarter_names ("the Dark"/"the Rising"/"the Full"/"the Falling").
+   Month from the untamed month list (Varro/Dakka/Skell/…).
+
+**Pass / Fail:** Pass
+
+#### TC-017-06 — Warren lore date format
+
+1. Inspect the Warren row.
+2. **Expected:** Matches `"<quarter>, day <N> of <month>, Litter <N> of the Wend <N>"`.
+   Quarter from warren quarter_names ("the Dark"/"the Swelling"/"the Full"/"the Fading").
+   Month from the warren month list (Tum/Fenn/Lilla/…).
+
+**Pass / Fail:** Pass
+
+#### TC-017-07 — Terpin Lunar lore date format
+
+1. Inspect the Terpin Lunar row.
+2. **Expected:** Matches `"<quarter>, day <N> of <month>, Year <N> of <Age Name>"`.
+   Quarter from terpin_lunar quarter_names (First Quarter/Second Quarter/…).
+   Month from terpin_lunar month list (Praal/Suneth/…). Age from terpin_lunar ages.
+
+**Pass / Fail:** Pass
+
+#### TC-017-08 — Hearth lore date format
+
+1. Inspect the Hearth row.
+2. **Expected:** Matches `"<phase_term>, the <Nth> day of Old Jem's <Nth> turning"`.
+   Both the day-within-cycle and the turning count are rendered as ordinals
+   (e.g., "1st", "21st", "51st"). Phase term from hearth phase_terms
+   ("the waxing"/"the full"/"the waning").
+
+**Pass / Fail:** Pass
+
+#### TC-017-09 — Lore Overlay absent when no pulse queried
+
+1. Load `/sky` with no input (blank form or fresh page load).
+2. **Expected:** The Lore Overlay section does not appear (no pulse → no scene
+   → lore is not computed).
+
+**Pass / Fail:** Pass
+
+#### TC-017-10 — Lore time advances across a day
+
+1. Query two pulses exactly one full day apart (e.g., pulse 86400 and pulse
+   172800, or any two Astro Days that share the same `day_offset`).
+2. **Expected:** Fatunik time and Terpin time are identical for both pulses
+   (same position within the day).
+
+**Pass / Fail:** Pass
+
+### SPEC-017 Results — 2026-06-14
+
+Tested on `sask-dev` via SSH tunnel. All cases pass.
+
+| TC | Result | Notes |
+|---|---|---|
+| TC-017-01 | PASS | Lore Overlay table appears with all 6 calendar rows |
+| TC-017-02 | PASS | Fatunik and Terpin show different watch/shur/keyt values |
+| TC-017-03 | PASS | Fatunik Solar: correct kell, day name, month, age |
+| TC-017-04 | PASS | Terpin Solar: correct deshan, day name, month, age |
+| TC-017-05 | PASS | Untamed: correct quarter, month name, Range/Reave counts |
+| TC-017-06 | PASS | Warren: correct quarter, month name, Litter/Wend counts |
+| TC-017-07 | PASS | Terpin Lunar: correct quarter, month, age |
+| TC-017-08 | PASS | Hearth: ordinal day and turning, correct phase term, Old Jem |
+| TC-017-09 | PASS | Lore Overlay absent on blank page load |
+| TC-017-10 | PASS | Same day-offset pulse → identical lore time on both queries |
+
+Minor refinement during UAT: hearth day and turning count changed to ordinal
+rendering (e.g., "1st day … 51st turning"). Test updated accordingly.
+
+### SPEC-017 Teardown
+
+Stop the Flask server with `Ctrl+C` in the VM terminal. Close the SSH tunnel
+terminal.

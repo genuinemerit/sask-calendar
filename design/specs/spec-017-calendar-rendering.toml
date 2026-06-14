@@ -1,6 +1,6 @@
 id="SPEC-017"
 title="Lore overlays: time-of-day and calendar date rendering"
-status="proposed"
+status="accepted"
 
 [implements]
 requirements=["REQ-FUN-011","REQ-OPS-007","REQ-OPS-008"]

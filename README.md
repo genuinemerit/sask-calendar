@@ -49,7 +49,8 @@ navigate to `http://localhost:5000/` in a host browser.
 | `/moons` | Moons sky view — phase, illumination, albedo, eclipse, altitude/azimuth, rise/transit/set for all 8 moons |
 | `/planets` | Planets sky view — same columns plus colour, brightness, and telescopic detail for all 7 planets |
 | `/sky` | Unified sky for a date — lunar calendars, moons and wanderers above horizon, |
-| | co-fullness, season, fixed stars and houses, night summary, image prompt |
+| | co-fullness, season, fixed stars and houses, night summary, image prompt; |
+| | lore overlay: watch/shur/keyt time and era/Round/phase calendar dates |
 | `/ephemeris` | Ephemeris generator — time-series of sky scenes at a configurable step; |
 | | scribal and/or kinematic JSON preview with download links |
 

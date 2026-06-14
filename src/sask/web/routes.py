@@ -1,4 +1,4 @@
-"""Route handlers for the sask web UI (SPEC-005, SPEC-009, SPEC-016).
+"""Route handlers for the sask web UI (SPEC-005, SPEC-009, SPEC-016, SPEC-017).
 
 All engine calls go through message-unit functions (pulse_info, body_state,
 sky_position, etc.) and return typed message units. No engine internals are
@@ -29,6 +29,7 @@ from ..pulse import (
     terpin_to_pulse,
 )
 from ..ephemeris import get_sky_series, render_kinematic_json, render_scribal_json
+from ..lore import render_lore_date, render_lore_time
 from ..scene import get_sky_scene, render_image_prompt, render_night_summary
 from ..season import season_info
 from ..sky import all_sky_positions, fatune_sky_position
@@ -281,6 +282,9 @@ def sky() -> str:
     time_of_day = None
     fatunik_date = terpin_date = None
     queried_astro_day = None
+    fatunik_lore_time = terpin_lore_time = None
+    fatunik_lore_date = terpin_lore_date = None
+    lore_lunar_dates: list[tuple] = []
 
     if pulse is not None and error is None:
         queried_astro_day = pulse // ppd + 1
@@ -294,6 +298,16 @@ def sky() -> str:
         lunar_entries = [
             (cal, get_lunar_date(pulse, cal.id, cfg)) for cal in cfg.lunar_calendars
         ]
+
+        if cfg.lore_time.enabled:
+            fatunik_lore_time = render_lore_time(pulse, "fatunik", cfg)
+            terpin_lore_time = render_lore_time(pulse, "terpin", cfg)
+            fatunik_lore_date = render_lore_date(fatunik_date, "fatunik_solar", cfg)
+            terpin_lore_date = render_lore_date(terpin_date, "terpin_solar", cfg)
+            lore_lunar_dates = [
+                (cal, ld, render_lore_date(ld, cal.id, cfg))
+                for cal, ld in lunar_entries
+            ]
 
         si = season_info(pulse, cfg)
         scene = get_sky_scene(pulse, cfg)
@@ -326,6 +340,12 @@ def sky() -> str:
         night_summary=night_summary,
         image_prompt=image_prompt,
         cofullness_days=cofullness_days,
+        lore_enabled=cfg.lore_time.enabled,
+        fatunik_lore_time=fatunik_lore_time,
+        terpin_lore_time=terpin_lore_time,
+        fatunik_lore_date=fatunik_lore_date,
+        terpin_lore_date=terpin_lore_date,
+        lore_lunar_dates=lore_lunar_dates,
     )
 
 

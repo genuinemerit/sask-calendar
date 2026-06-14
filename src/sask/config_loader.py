@@ -272,6 +272,65 @@ class EphemerisConfig:
     tracked_bodies: tuple[str, ...]  # body ids included in kinematic output
 
 
+# ── Lore overlay config dataclasses (SPEC-017) ────────────────────────────────
+
+
+@dataclass(frozen=True)
+class LoreAge:
+    """One Age entry from a calendar lore config (ages era mode)."""
+
+    name: str
+    start_turn: int
+
+
+@dataclass(frozen=True)
+class LoreCulture:
+    """One culture entry from lore_time.toml."""
+
+    name: str
+    day_start_pulses: int
+
+
+@dataclass(frozen=True)
+class LoreTimeConfig:
+    """Lore time-of-day display settings from lore_time.toml (SPEC-017)."""
+
+    enabled: bool
+    watch_names: tuple[str, ...]
+    format_str: str
+    cultures: tuple[LoreCulture, ...]
+
+
+@dataclass(frozen=True)
+class CalendarLoreConfig:
+    """Per-calendar lore overlay config from {id}.toml files (SPEC-017)."""
+
+    id: str
+    kind: str  # "solar" | "lunar"
+    # era
+    era_mode: str  # "ages" | "round" | "none"
+    era_name: str | None
+    turn_word: str | None
+    round_word: str | None
+    ages: tuple[LoreAge, ...] | None
+    # months
+    festival_index: int | None  # solar only
+    festival_name: str | None  # solar only
+    month_names: tuple[str, ...] | None  # None for hearth
+    # week
+    week_kind: str  # "fixed" | "phase" | "none"
+    week_length: int | None  # fixed only
+    week_word: str | None  # fixed only
+    week_ordinal: bool
+    day_names: tuple[str, ...] | None  # fixed only
+    moon_word: str | None  # phase/none
+    quarter_names: tuple[str, ...] | None  # phase only (4 items)
+    phase_terms: tuple[str, ...] | None  # none/hearth only
+    # format templates
+    format_full: str
+    format_short: str
+
+
 @dataclass(frozen=True)
 class AppConfig:
     time_constants: TimeConstants
@@ -293,6 +352,10 @@ class AppConfig:
     sky_styles: tuple[SkyStyleConfig, ...]  # named image-prompt styles (SPEC-013)
     sky_style_settings: SkyStyleSettings  # default style selection (SPEC-013)
     ephemeris: EphemerisConfig  # throttle + tracked bodies (SPEC-015)
+    lore_time: LoreTimeConfig  # time-of-day watch/shur/keyt display (SPEC-017)
+    lore_calendars: tuple[
+        CalendarLoreConfig, ...
+    ]  # 6 calendar lore overlays (SPEC-017)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -758,6 +821,129 @@ def _load_cofullness(raw: dict, src: str) -> CofullnessConfig:
     )
 
 
+def _load_lore_time(raw: dict, src: str) -> LoreTimeConfig:
+    disp = _require(raw, "display", src)
+    if not isinstance(disp, dict):
+        raise ConfigError(f"{src}: [display] must be a table")
+    ns_d = f"{src} [display]"
+    enabled = bool(_require(disp, "enabled", ns_d))
+    watch_names_raw = _require(disp, "watch_names", ns_d)
+    if not isinstance(watch_names_raw, list) or len(watch_names_raw) != 6:
+        raise ConfigError(f"{ns_d}: watch_names must be a list of 6 names")
+    format_str = str(_require(disp, "format", ns_d))
+
+    cultures_raw = _require(raw, "cultures", src)
+    if not isinstance(cultures_raw, dict):
+        raise ConfigError(f"{src}: [cultures] must be a table")
+    cultures: list[LoreCulture] = []
+    for cname, cval in cultures_raw.items():
+        if not isinstance(cval, dict):
+            raise ConfigError(f"{src} [cultures]: {cname} must be a table")
+        dsp = int(  # type: ignore[arg-type]
+            _require(cval, "day_start_pulses", f"{src} [cultures.{cname}]")
+        )
+        cultures.append(LoreCulture(name=cname, day_start_pulses=dsp))
+
+    return LoreTimeConfig(
+        enabled=enabled,
+        watch_names=tuple(str(n) for n in watch_names_raw),
+        format_str=format_str,
+        cultures=tuple(cultures),
+    )
+
+
+def _load_calendar_lore(raw: dict, src: str) -> CalendarLoreConfig:
+    cal_id = str(_require(raw, "id", src))
+    kind = str(_require(raw, "kind", src))
+
+    era = _require(raw, "era", src)
+    if not isinstance(era, dict):
+        raise ConfigError(f"{src}: [era] must be a table")
+    ns_e = f"{src} [era]"
+    era_mode = str(_require(era, "mode", ns_e))
+    era_name = str(era["era_name"]) if "era_name" in era else None
+    turn_word = str(era["turn_word"]) if "turn_word" in era else None
+    round_word = str(era["round_word"]) if "round_word" in era else None
+    ages: tuple[LoreAge, ...] | None = None
+    if "ages" in era:
+        ages_raw = era["ages"]
+        if not isinstance(ages_raw, list):
+            raise ConfigError(f"{ns_e}: ages must be a list")
+        ages = tuple(
+            LoreAge(
+                name=str(_require(a, "name", f"{ns_e} ages[{i}]")),
+                start_turn=int(  # type: ignore[arg-type]
+                    _require(a, "start_turn", f"{ns_e} ages[{i}]")
+                ),
+            )
+            for i, a in enumerate(ages_raw)
+        )
+
+    months_raw = raw.get("months", {})
+    if not isinstance(months_raw, dict):
+        raise ConfigError(f"{src}: [months] must be a table")
+    festival_index: int | None = None
+    festival_name: str | None = None
+    month_names: tuple[str, ...] | None = None
+    if months_raw:
+        if "festival" in months_raw:
+            fest = months_raw["festival"]
+            festival_index = int(fest["index"])  # type: ignore[arg-type]
+            festival_name = str(fest["name"])
+        if "names" in months_raw:
+            month_names = tuple(str(n) for n in months_raw["names"])
+
+    week = _require(raw, "week", src)
+    if not isinstance(week, dict):
+        raise ConfigError(f"{src}: [week] must be a table")
+    ns_w = f"{src} [week]"
+    week_kind = str(_require(week, "kind", ns_w))
+    week_length = int(week["length_days"]) if "length_days" in week else None  # type: ignore[arg-type]
+    week_word = str(week["word"]) if "word" in week else None
+    week_ordinal = bool(week.get("ordinal", False))
+    day_names: tuple[str, ...] | None = (
+        tuple(str(n) for n in week["day_names"]) if "day_names" in week else None
+    )
+    moon_word = str(week["moon_word"]) if "moon_word" in week else None
+    quarter_names: tuple[str, ...] | None = (
+        tuple(str(n) for n in week["quarter_names"])
+        if "quarter_names" in week
+        else None
+    )
+    phase_terms: tuple[str, ...] | None = (
+        tuple(str(n) for n in week["phase_terms"]) if "phase_terms" in week else None
+    )
+
+    fmt = _require(raw, "format", src)
+    if not isinstance(fmt, dict):
+        raise ConfigError(f"{src}: [format] must be a table")
+    format_full = str(_require(fmt, "full", f"{src} [format]"))
+    format_short = str(_require(fmt, "short", f"{src} [format]"))
+
+    return CalendarLoreConfig(
+        id=cal_id,
+        kind=kind,
+        era_mode=era_mode,
+        era_name=era_name,
+        turn_word=turn_word,
+        round_word=round_word,
+        ages=ages,
+        festival_index=festival_index,
+        festival_name=festival_name,
+        month_names=month_names,
+        week_kind=week_kind,
+        week_length=week_length,
+        week_word=week_word,
+        week_ordinal=week_ordinal,
+        day_names=day_names,
+        moon_word=moon_word,
+        quarter_names=quarter_names,
+        phase_terms=phase_terms,
+        format_full=format_full,
+        format_short=format_short,
+    )
+
+
 # ── Public entry point ────────────────────────────────────────────────────────
 
 
@@ -798,6 +984,21 @@ def load_config(config_dir: Path) -> AppConfig:
     ephemeris = _load_ephemeris_data(
         _load_toml(config_dir / "ephemeris_data.toml"), "ephemeris_data.toml"
     )
+    lore_time = _load_lore_time(
+        _load_toml(config_dir / "lore_time.toml"), "lore_time.toml"
+    )
+    _lore_cal_ids = [
+        "fatunik_solar",
+        "terpin_solar",
+        "untamed",
+        "warren",
+        "terpin_lunar",
+        "hearth",
+    ]
+    lore_calendars = tuple(
+        _load_calendar_lore(_load_toml(config_dir / f"{cid}.toml"), f"{cid}.toml")
+        for cid in _lore_cal_ids
+    )
     return AppConfig(
         time_constants=tc,
         astro=astro,
@@ -818,4 +1019,6 @@ def load_config(config_dir: Path) -> AppConfig:
         sky_styles=sky_styles,
         sky_style_settings=sky_style_settings,
         ephemeris=ephemeris,
+        lore_time=lore_time,
+        lore_calendars=lore_calendars,
     )

@@ -11,6 +11,7 @@ fatunik = { day_start_pulses = 21600 }      # 6 AM
 terpin  = { day_start_pulses = 0 }          # midnight
 
 [display]
+enabled = true
 indexing = "one"                            # 1-indexed: First Watch, shur 1, keyt 1
 watch_names = ["First", "Second", "Third", "Fourth", "Fifth", "Sixth"]
 format = "{watch} Watch . shur {shur} : keyt {keyt}"

@@ -1,5 +1,44 @@
 # Dev log
 
+## 2026-06-14 — SPEC-017: UAT complete (all 10 TCs pass)
+
+**SPEC-017 UAT passed** (all 10 test cases — TC-017-01 through TC-017-10).
+
+Lore overlay display confirmed correct in the browser for story_now pulse:
+watch/shur/keyt for Fatunik and Terpin; era-based lore dates for fatunik_solar
+and terpin_solar; phase-quarter dates for untamed, warren, and terpin_lunar;
+ordinal day/turning for hearth. One minor refinement during UAT: hearth day and
+turning count now rendered as ordinals (e.g., "1st", "51st").
+
+**Next:** performance testing, packaging, Digital Ocean deployment.
+
+## 2026-06-14 — SPEC-017: lore overlays — dev complete, awaiting UAT
+
+Implemented lore overlay renderers (`src/sask/lore.py`) with 21 passing unit
+tests. Pre-commit checks pass.
+
+**Deliverables:**
+
+- `config/lore_time.toml` — `enabled = true` added to `[display]`; unchanged otherwise.
+- `src/sask/config_loader.py` — four new frozen dataclasses (`LoreAge`,
+  `LoreCulture`, `LoreTimeConfig`, `CalendarLoreConfig`) plus `_load_lore_time()`
+  and `_load_calendar_lore()` loaders; `AppConfig` updated with `lore_time` and
+  `lore_calendars` fields; `load_config()` reads all six calendar TOML files.
+- `src/sask/lore.py` — `render_lore_time(pulse, culture, config)`,
+  `render_lore_date(technical_date, calendar_id, config)`, and
+  `apply_lore_overlay(scribal_record, culture, calendar_id, config)`.
+- `src/sask/web/routes.py` — sky() route computes Fatunik/Terpin lore times and
+  solar/lunar lore dates when `cfg.lore_time.enabled`; passes all to template.
+- `src/sask/templates/sky.html` — "Lore Overlay" section added (inside
+  `{% if lore_enabled %}`), showing time and date for all 6 calendars.
+- `tests/test_spec_017.py` — 21 tests covering config loading, `render_lore_time`
+  (two cultures, boundary wrap, invalid culture), `render_lore_date` (all 6
+  calendar types, festival month, age boundary), and `apply_lore_overlay`
+  (presence, immutability, determinism).
+- `design/specs/spec-017-calendar-rendering.toml` — status updated to "accepted".
+
+**Next:** UAT — load `/sky` for story_now and verify the Lore Overlay section.
+
 ## 2026-06-14 — SPEC-016: UAT complete; form refactoring and validation additions
 
 **SPEC-016 UAT passed** (all 16 test cases — TC-016-01 through TC-016-16).

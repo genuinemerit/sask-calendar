@@ -61,6 +61,21 @@
 
 {% if scene %}
 
+{% if lore_enabled %}
+<h2>Lore Overlay</h2>
+<table>
+  <tbody>
+    <tr><td><strong>Fatunik time</strong></td><td>{{ fatunik_lore_time }}</td></tr>
+    <tr><td><strong>Terpin time</strong></td><td>{{ terpin_lore_time }}</td></tr>
+    <tr><td><strong>Fatunik Solar</strong></td><td>{{ fatunik_lore_date }}</td></tr>
+    <tr><td><strong>Terpin Solar</strong></td><td>{{ terpin_lore_date }}</td></tr>
+    {% for cal, ld, lore_str in lore_lunar_dates %}
+    <tr><td><strong>{{ cal.name }}</strong></td><td>{{ lore_str }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
 <h2>Lunar Calendars <span class="meta">(display-only)</span></h2>
 <table>
   <thead>
