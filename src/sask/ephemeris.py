@@ -81,7 +81,7 @@ def _validate_throttle(
     if span > eph.range_cap_pulses:
         raise ValueError(
             f"range of {span} pulses exceeds the maximum of "
-            f"{eph.range_cap_pulses} pulses (7 days)"
+            f"{eph.range_cap_pulses} pulses (30 days)"
         )
 
 

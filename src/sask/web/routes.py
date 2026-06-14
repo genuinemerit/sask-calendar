@@ -1,4 +1,4 @@
-"""Route handlers for the sask web UI (SPEC-005, SPEC-009).
+"""Route handlers for the sask web UI (SPEC-005, SPEC-009, SPEC-016).
 
 All engine calls go through message-unit functions (pulse_info, body_state,
 sky_position, etc.) and return typed message units. No engine internals are
@@ -8,7 +8,14 @@ from AppConfig and passed to the translator, not mixed into engine calls.
 
 from __future__ import annotations
 
-from flask import Blueprint, current_app, render_template, request
+from flask import (
+    Blueprint,
+    Response,
+    current_app,
+    make_response,
+    render_template,
+    request,
+)
 
 from ..bodies import all_body_states
 from ..config_loader import AppConfig
@@ -21,6 +28,7 @@ from ..pulse import (
     pulse_info,
     terpin_to_pulse,
 )
+from ..ephemeris import get_sky_series, render_kinematic_json, render_scribal_json
 from ..scene import get_sky_scene, render_image_prompt, render_night_summary
 from ..season import season_info
 from ..sky import all_sky_positions, fatune_sky_position
@@ -81,6 +89,56 @@ def _resolve_pulse(
             return terpin_to_pulse(date, cfg), None
         except (ValueError, KeyError) as exc:
             return None, f"Invalid Terpin date: {exc}"
+
+    return None, None
+
+
+def _resolve_endpoint(
+    prefix: str,
+    cfg: AppConfig,
+) -> tuple[int | None, str | None]:
+    """Like _resolve_pulse but with prefixed query param names (e.g. 'start_').
+
+    Priority: {prefix}pulse > {prefix}astro_day > fatunik date > terpin date.
+    """
+    pulse_p = request.args.get(f"{prefix}pulse") or None
+    astro_day_p = request.args.get(f"{prefix}astro_day") or None
+    fat_y = request.args.get(f"{prefix}fatunik_year") or None
+    fat_m = request.args.get(f"{prefix}fatunik_month") or None
+    fat_d = request.args.get(f"{prefix}fatunik_day") or None
+    ter_y = request.args.get(f"{prefix}terpin_year") or None
+    ter_m = request.args.get(f"{prefix}terpin_month") or None
+    ter_d = request.args.get(f"{prefix}terpin_day") or None
+
+    if pulse_p is not None:
+        try:
+            return int(round(float(pulse_p))), None
+        except ValueError:
+            return None, f"Invalid {prefix}pulse {pulse_p!r} — enter a number."
+
+    if astro_day_p is not None:
+        try:
+            day = int(astro_day_p)
+            return (day - 1) * cfg.time_constants.pulses_per_day, None
+        except ValueError:
+            return (
+                None,
+                f"Invalid {prefix}astro_day {astro_day_p!r} — enter an integer.",
+            )
+
+    if fat_y and fat_m and fat_d:
+        try:
+            date = CalendarDate("fatunik", int(fat_y), int(fat_m), int(fat_d))
+            return fatunik_to_pulse(date, cfg), None
+        except (ValueError, KeyError) as exc:
+            return None, f"Invalid {prefix}Fatunik date: {exc}"
+
+    if ter_y and ter_m and ter_d:
+        try:
+            date = CalendarDate("terpin", int(ter_y), int(ter_m), int(ter_d))
+            return terpin_to_pulse(date, cfg), None
+        except (ValueError, KeyError) as exc:
+            return None, f"Invalid {prefix}Terpin date: {exc}"
 
     return None, None
 
@@ -269,3 +327,195 @@ def sky() -> str:
         image_prompt=image_prompt,
         cofullness_days=cofullness_days,
     )
+
+
+def _pulse_time_of_day(pulse: int, ppd: int) -> str:
+    off = pulse % ppd
+    h, m, s = off // 3600, (off % 3600) // 60, off % 60
+    return f"{h:02d}:{m:02d}:{s:02d}"
+
+
+@bp.route("/ephemeris")
+def ephemeris() -> str:
+    cfg: AppConfig = current_app.config["SASK_CONFIG"]
+    ppd = cfg.time_constants.pulses_per_day
+
+    # Start resolves from whichever input type is supplied (pulse priority).
+    start_pulse, start_err = _resolve_endpoint("start_", cfg)
+    error = start_err
+
+    # End mode:
+    #   Pulse mode  — end_pulse supplied directly via "end_pulse" param.
+    #   Date mode   — end_pulse computed as start + duration_days × ppd.
+    # The presence of "end_pulse" in the query string selects Pulse mode.
+    end_pulse_raw = request.args.get("end_pulse") or None
+    duration_days_p = request.args.get("duration_days") or None
+    step_min_p = request.args.get("step_minutes") or None
+    pulse_mode = end_pulse_raw is not None
+
+    end_pulse: int | None = None
+    duration_days: int | None = None
+
+    if pulse_mode:
+        try:
+            end_pulse = int(round(float(end_pulse_raw)))  # type: ignore[arg-type]
+        except ValueError:
+            error = error or f"Invalid end_pulse {end_pulse_raw!r} — enter a number."
+
+    profile = request.args.get("profile", "scribal")
+    step_pulses = None
+    series = None
+    scribal_preview = None
+    kinematic_preview = None
+
+    # Cross-calendar equivalents for cross-populating all input fields.
+    start_astro_day = start_fatunik_date = start_terpin_date = start_time_of_day = None
+    end_astro_day = end_fatunik_date = end_terpin_date = end_time_of_day = None
+
+    if start_pulse is not None:
+        start_astro_day = start_pulse // ppd + 1
+        start_time_of_day = _pulse_time_of_day(start_pulse, ppd)
+        start_fatunik_date = astro_to_fatunik(start_pulse, cfg)
+        start_terpin_date = astro_to_terpin(start_pulse, cfg)
+
+    # Validate and generate when any relevant field has been submitted.
+    any_input = bool(
+        start_pulse is not None
+        or end_pulse_raw is not None
+        or duration_days_p is not None
+        or step_min_p is not None
+    )
+
+    if error is None and any_input:
+        if start_pulse is None:
+            error = "Start time is required."
+        elif step_min_p is None:
+            error = "Step (Astro minutes) is required."
+        else:
+            try:
+                step_pulses = int(step_min_p) * 60
+            except ValueError:
+                error = f"Invalid step_minutes {step_min_p!r} — enter an integer."
+
+            if error is None:
+                if pulse_mode:
+                    if end_pulse is None:
+                        error = "End pulse is required."
+                else:
+                    if duration_days_p is None:
+                        error = "Duration (Days) is required."
+                    else:
+                        try:
+                            duration_days = int(duration_days_p)
+                            if duration_days < 1:
+                                error = "Duration (Days) must be at least 1."
+                            else:
+                                end_pulse = start_pulse + duration_days * ppd
+                        except ValueError:
+                            error = (
+                                f"Invalid duration_days {duration_days_p!r}"
+                                " — enter an integer."
+                            )
+
+        if error is None and end_pulse is not None and step_pulses is not None:
+            span = end_pulse - start_pulse
+            if step_pulses >= span:
+                step_min = step_pulses // 60
+                span_min = span // 60
+                error = (
+                    f"Step ({step_min} min) equals or exceeds the total duration "
+                    f"({span_min} min) — reduce Step or increase Duration (Days)."
+                )
+            else:
+                try:
+                    series = get_sky_series(start_pulse, end_pulse, step_pulses, cfg)
+                    preview_end = min(end_pulse, start_pulse + 4 * step_pulses)
+                    preview_series = get_sky_series(
+                        start_pulse, preview_end, step_pulses, cfg
+                    )
+                    if profile in ("scribal", "both"):
+                        scribal_preview = render_scribal_json(preview_series, cfg)
+                    if profile in ("kinematic", "both"):
+                        kinematic_preview = render_kinematic_json(preview_series, cfg)
+                except ValueError as exc:
+                    error = str(exc)
+                    series = None
+
+    # Compute end cross-calendar display after end_pulse is finalised.
+    if end_pulse is not None:
+        end_astro_day = end_pulse // ppd + 1
+        end_time_of_day = _pulse_time_of_day(end_pulse, ppd)
+        end_fatunik_date = astro_to_fatunik(end_pulse, cfg)
+        end_terpin_date = astro_to_terpin(end_pulse, cfg)
+
+    return render_template(
+        "ephemeris.html",
+        error=error,
+        pulse_mode=pulse_mode,
+        start_pulse=start_pulse,
+        end_pulse=end_pulse,
+        duration_days=duration_days,
+        start_astro_day=start_astro_day,
+        end_astro_day=end_astro_day,
+        start_fatunik_date=start_fatunik_date,
+        end_fatunik_date=end_fatunik_date,
+        start_terpin_date=start_terpin_date,
+        end_terpin_date=end_terpin_date,
+        start_time_of_day=start_time_of_day,
+        end_time_of_day=end_time_of_day,
+        step_pulses=step_pulses,
+        profile=profile,
+        series=series,
+        scribal_preview=scribal_preview,
+        kinematic_preview=kinematic_preview,
+    )
+
+
+@bp.route("/ephemeris/download")
+def ephemeris_download() -> Response:
+    cfg: AppConfig = current_app.config["SASK_CONFIG"]
+
+    try:
+        start_pulse = int(request.args["start"])
+        end_pulse = int(request.args["end"])
+        step_pulses = int(request.args["step"])
+    except (KeyError, ValueError) as exc:
+        resp = make_response(f"Missing or invalid parameter: {exc}", 400)
+        resp.content_type = "text/plain"
+        return resp
+
+    profile = request.args.get("profile", "scribal")
+    if profile not in ("scribal", "kinematic"):
+        resp = make_response(
+            f"Invalid profile {profile!r} — use 'scribal' or 'kinematic'.", 400
+        )
+        resp.content_type = "text/plain"
+        return resp
+
+    span = end_pulse - start_pulse
+    if step_pulses >= span:
+        resp = make_response(
+            f"step {step_pulses} pulses equals or exceeds range {span} pulses"
+            " — no intermediate steps would be generated.",
+            400,
+        )
+        resp.content_type = "text/plain"
+        return resp
+
+    try:
+        series = get_sky_series(start_pulse, end_pulse, step_pulses, cfg)
+    except ValueError as exc:
+        resp = make_response(str(exc), 400)
+        resp.content_type = "text/plain"
+        return resp
+
+    if profile == "scribal":
+        body = render_scribal_json(series, cfg)
+    else:
+        body = render_kinematic_json(series, cfg)
+
+    filename = f"ephemeris_{profile}_p{start_pulse}-{end_pulse}_s{step_pulses}.json"
+    resp = make_response(body)
+    resp.headers["Content-Type"] = "application/json"
+    resp.headers["Content-Disposition"] = f"attachment; filename={filename}"
+    return resp

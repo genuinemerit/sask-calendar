@@ -1,6 +1,6 @@
 id="SPEC-016"
 title="Ephemeris web page and regen-on-download export"
-status="proposed"
+status="accepted"
 
 [implements]
 requirements=["REQ-FUN-010","REQ-OPS-007","REQ-OPS-008"]
@@ -8,9 +8,14 @@ dds=["DD-0009","DD-0003"]
 
 [scope]
 in_scope=[
-  "A server-rendered page with a form for start, end, step, and profile (scribal, kinematic, or both), accepting endpoints in the four standard input forms (pulse / Astro day+time / Fatunik date+time / Terpin date+time).",
+  "A server-rendered page with a form for start time, range length, step, and profile (scribal, kinematic, or both).",
+  "Two end-time modes: Pulse mode (explicit start_pulse + end_pulse); Date mode (start via Astro day / Fatunik date / Terpin date + Duration in whole days, end computed as start + duration × 86400 pulses).",
+  "Start-time defaults: Astro day and Terpin date resolve to midnight (00:00:00); Fatunik date resolves to 06:00:00 Astro (Fatunik civil day start).",
+  "Cross-population of all input formats from the resolved start pulse after each submit, matching the /sky and /moons pattern.",
+  "A Reset button to clear all fields before switching input type.",
+  "A computed-end display line (Pulse, Astro Day, Fatunik, Terpin) shown in Date mode after Generate.",
   "A truncated JSON preview per requested profile (metadata + first few steps).",
-  "A download link per profile carrying the request parameters in the query string.",
+  "A download link per profile carrying the request parameters (start, end, step as raw pulses) in the query string.",
   "A download endpoint that regenerates the JSON from those parameters and streams it as an attachment.",
 ]
 out_of_scope=[
@@ -20,12 +25,13 @@ out_of_scope=[
 ]
 [deliverables]
 page="""
-The form accepts endpoints in any of the four standard input forms (resolved to
-pulses via the existing translators) plus step and profile. On submit, the server
-runs get_sky_series (SPEC-015) and renders a truncated preview per profile in a
-text box, plus a download link per profile of the form
-/ephemeris/download?start=&end=&step=&profile=. The selected parameters also ride
-in the page URL so the view is shareable.
+The form has four input-type fieldsets (Pulse / Astro Day / Fatunik Date / Terpin Date)
+and a Step & Profile fieldset. Pulse fieldset has an explicit Start and End pulse field.
+The other three fieldsets have a Start input only; the end time is computed from a
+Duration (Days) integer in the Step & Profile section (end = start + days × 86400).
+A Reset button clears all fields. On Generate, resolved values are cross-populated
+into all input types (matching /sky). The page URL carries all submitted parameters
+so results are shareable. A computed-end summary line is shown in Date mode.
 """
 download="""
 /ephemeris/download regenerates the series for the given parameters (SPEC-015) and
@@ -36,9 +42,12 @@ zip is an optional alternative).
 """
 [acceptance]
 checks=[
-  "Submitting a valid range and profile shows a truncated preview and a working download link per profile.",
-  "The download returns regenerated JSON as an attachment with a descriptive filename; refreshing the download URL reproduces the bytes.",
-  "Out-of-bounds step or range is refused with a clear message.",
+  "Pulse mode (start_pulse + end_pulse): submitting a valid range shows a preview and download link.",
+  "Date mode (start date + duration_days): end is computed; computed-end line shows pulse/Astro/Fatunik/Terpin equivalents.",
+  "Duration = 0 or missing with a date-mode start is refused with a clear message.",
+  "All start input formats cross-populate after Generate (pulse, Astro day, Fatunik, Terpin all filled).",
+  "Reset button clears all fields.",
+  "The download returns regenerated JSON as an attachment with a descriptive filename; refreshing the URL reproduces the bytes.",
+  "Out-of-bounds step (< 5 min), range (> 30 days), or step ≥ total duration is refused with a clear message.",
   "The page uses no JavaScript; the selected parameters appear in the page URL.",
-  "Endpoints may be entered as pulse, Astro day+time, Fatunik date+time, or Terpin date+time, resolved via the existing translators.",
 ]

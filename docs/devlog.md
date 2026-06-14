@@ -1,5 +1,68 @@
 # Dev log
 
+## 2026-06-14 — SPEC-016: UAT complete; form refactoring and validation additions
+
+**SPEC-016 UAT passed** (all 16 test cases — TC-016-01 through TC-016-16).
+
+Changes made during UAT that preceded commit (all tested and passing — 35 tests total):
+
+**Form refactoring:**
+
+- Input groups reorganised by type: Pulse fieldset (explicit start + end); Astro Day,
+  Fatunik Date, Terpin Date fieldsets (start only; end computed from Duration).
+- **Duration (Days)** replaces explicit end-date inputs for date modes (end = start + days × 86400).
+- **Reset button** implemented as `<a href="/ephemeris">` (navigates to clean URL,
+  clearing all fields); `<button type="reset">` was unusable because it restores to
+  rendered values (which are the query-param values), not to empty.
+- Computed end displayed inline to the right of the start time in each date fieldset
+  (`End: [value] · HH:MM:SS`), rather than in a separate paragraph.
+- All input types cross-populated after Generate regardless of which input type was used
+  to specify the start (removed `and pulse_mode` guard from Pulse fieldset value attributes).
+
+**Validation additions:**
+
+- **Step ≥ duration** check: if `step_pulses >= (end_pulse - start_pulse)` the route
+  returns a form error (200) and the download endpoint returns 400. The engine itself
+  (SPEC-015) is unchanged — it correctly returns 1 step for this case; the web layer
+  refuses it as a non-useful request. TC-016-16 covers this.
+- **Range cap raised from 7 days to 30 days** (`range_cap_pulses`: 604800 → 2592000).
+  Maximum request size is 8640 records at 5-minute intervals for 30 days. Error message
+  in `ephemeris.py` updated accordingly. `test_range_at_cap_is_accepted` in
+  test_spec_016.py now uses a 1-day step to keep CI fast (30 scenes vs 8640).
+- Duration input `max` attribute updated to `30` in the template.
+
+**Test counts:** 35 (test_spec_016.py); 64 combined with test_spec_015.py; 558 total.
+
+---
+
+## 2026-06-13 — SPEC-016: ephemeris web page and regen-on-download export
+
+**SPEC-016 implemented** (26 new tests; 26 pass; UAT required before commit):
+
+- `src/sask/web/routes.py` — two new routes:
+  - `_resolve_endpoint(prefix, cfg)`: like `_resolve_pulse` but with prefixed query
+    param names, allowing independent start/end endpoint resolution using all four
+    input forms (pulse / Astro day / Fatunik date / Terpin date).
+  - `GET /ephemeris`: form accepts start, end, step (minutes), and profile
+    (scribal / kinematic / both). Generates a preview (first 5 steps) and passes
+    scribal/kinematic JSON to the template as a `<pre>` block. Download links carry
+    all parameters in the query string.
+  - `GET /ephemeris/download`: reads start/end/step/profile from query string as raw
+    pulses; validates throttle; regenerates JSON; returns as `attachment` with filename
+    `ephemeris_{profile}_p{start}-{end}_s{step}.json`. No temp file written.
+- `src/sask/templates/ephemeris.html` — server-rendered only (no JavaScript). GET
+  form with all four input forms for start and end; step minutes; profile selector;
+  truncated preview per profile in a scrollable `<pre>` box; download link(s).
+- `src/sask/templates/base.html` — "Ephemeris" nav link added.
+- `tests/test_spec_016.py` — 26 tests covering HTTP smoke, preview rendering,
+  throttle validation, download headers, determinism, and JSON structure.
+- SPEC-016 design doc status: `proposed` → `accepted`.
+
+UAT: [manual] load `/ephemeris` in a browser; submit a valid range; inspect the
+preview; click each download link; verify the file saves correctly.
+
+---
+
 ## 2026-06-13 — SPEC-015: sky-scene ephemeris generator and JSON renderers
 
 **Phase 0 — Design doc housekeeping (same session):**

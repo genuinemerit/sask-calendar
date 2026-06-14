@@ -50,10 +50,13 @@ navigate to `http://localhost:5000/` in a host browser.
 | `/planets` | Planets sky view — same columns plus colour, brightness, and telescopic detail for all 7 planets |
 | `/sky` | Unified sky for a date — lunar calendars, moons and wanderers above horizon, |
 | | co-fullness, season, fixed stars and houses, night summary, image prompt |
+| `/ephemeris` | Ephemeris generator — time-series of sky scenes at a configurable step; |
+| | scribal and/or kinematic JSON preview with download links |
 
-All three pages accept four equivalent input forms: pulse number, Astro day,
+All pages accept four equivalent input forms: pulse number, Astro day,
 Fatunik date, or Terpin date. After any query all four input fields are
-cross-populated with the resolved equivalents.
+cross-populated with the resolved equivalents. The `/ephemeris` page also
+accepts a Duration (Days) field for date-mode ranges.
 
 **Start the server:**
 

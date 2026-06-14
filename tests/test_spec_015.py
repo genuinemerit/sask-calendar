@@ -2,7 +2,7 @@
 
 Covers all acceptance criteria:
   - Steps produced at exactly the requested cadence
-  - step < 5 min or range > 7 days is refused with ValueError
+  - step < 5 min or range > 30 days is refused with ValueError
   - Identical (start, end, step, config) yields byte-identical JSON
   - Per-day context appears once per Astro day; steps reference it
   - Kinematic includes below-horizon bodies (up=False, negative altitude)
@@ -35,7 +35,7 @@ _STEP = CONFIG.ephemeris.step_floor_pulses  # 300
 
 def test_ephemeris_config_loaded():
     assert CONFIG.ephemeris.step_floor_pulses == 300
-    assert CONFIG.ephemeris.range_cap_pulses == 604800
+    assert CONFIG.ephemeris.range_cap_pulses == 2592000
     assert len(CONFIG.ephemeris.tracked_bodies) > 0
 
 
@@ -66,7 +66,9 @@ def test_range_above_cap_raises():
 
 def test_range_at_cap_is_accepted():
     cap = CONFIG.ephemeris.range_cap_pulses
-    series = get_sky_series(_STORY, _STORY + cap, _STEP, CONFIG)
+    ppd = CONFIG.time_constants.pulses_per_day
+    # Use a 1-day step to keep scene count to ~30 rather than 8640.
+    series = get_sky_series(_STORY, _STORY + cap, ppd, CONFIG)
     assert len(series.steps) > 0
 
 

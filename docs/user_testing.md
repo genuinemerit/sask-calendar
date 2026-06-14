@@ -1038,3 +1038,393 @@ HTML source (Ctrl+U or browser DevTools → Sources).
 
 Stop the Flask server with `Ctrl+C` in the VM terminal. Close the SSH tunnel
 terminal.
+
+---
+
+## SPEC-016 — Ephemeris web page and regen-on-download export
+
+SPEC-016 adds an **/ephemeris** page with two range-input modes:
+
+- **Pulse mode** — enter an explicit start pulse and end pulse for a precise range.
+- **Date mode** — enter a start time via Astro Day, Fatunik Date, or Terpin Date,
+  and a **Duration (Days)** integer; the end is computed as start + days × 86,400 pulses.
+
+After each Generate the page cross-populates all input types (like /sky).
+A **Reset** button clears all fields before switching input type.
+A truncated JSON preview and download link are rendered per profile (scribal / kinematic / both).
+Download links regenerate the full series on demand and return it as a file attachment.
+No JavaScript; no server-side storage.
+
+### SPEC-016 Setup
+
+Same as SPEC-014. If the Flask server is already running, skip to step 3.
+
+**1. Open an SSH tunnel from the Ubuntu host:**
+
+```bash
+ssh -L 5000:localhost:5000 sask-dev
+```
+
+Keep this terminal open.
+
+**2. In the VM session, start the Flask development server:**
+
+```bash
+cd ~/Code/sask-calendar
+bash tools/start_web.sh
+```
+
+Expected output: `Running on http://127.0.0.1:5000`
+
+**3. Open a browser on the Ubuntu host. The page under test is:**
+
+```text
+http://localhost:5000/ephemeris
+```
+
+**Reference values used in the test cases below:**
+
+| Label | Value | Meaning |
+|---|---|---|
+| Story now | `104548096103` | Start pulse for most tests |
+| Story now + 1 h | `104548099703` | End pulse for Pulse-mode short-range tests (+3600 pulses) |
+| Min step | `5` minutes | Floor allowed by the throttle (300 pulses) |
+| Over-range end | `104549004903` | Start + 950,400 pulses — exceeds the 7-day cap (604,800) |
+| Story now Astro day | `1210048` | Astro day corresponding to story_now_pulse |
+| Story now Fatunik | T`1782` M`10` D`29` | Fatunik date at story_now (resolves to 06:00:00 Astro) |
+
+---
+
+### SPEC-016 Test cases
+
+#### TC-016-01 — Navigation bar includes Ephemeris link on all pages
+
+**Action:** Load each of the five pages (`/`, `/moons`, `/planets`, `/sky`,
+`/ephemeris`) in turn.
+
+**Pass criteria:**
+
+- Every page renders a navigation bar at the top containing five links:
+  **Pulse**, **Moons**, **Planets**, **Sky**, and **Ephemeris**.
+- The **Ephemeris** link navigates to `/ephemeris`.
+- Existing pages remain functional as in SPEC-005, SPEC-009, and SPEC-014.
+
+---
+
+#### TC-016-02 — Ephemeris landing page loads with no query
+
+**Action:** Navigate to `http://localhost:5000/ephemeris` with no query
+parameters.
+
+**Pass criteria:**
+
+- HTTP 200; page title contains "Ephemeris".
+- A form is rendered with four input-type fieldsets:
+  - **Pulse (explicit start and end)** — Start and End pulse fields.
+  - **Astro Day (start; end set by Duration)** — Start Astro Day field only.
+  - **Fatunik Date (start; end set by Duration)** — Start Year/Month/Day only.
+  - **Terpin Date (start; end set by Duration)** — Start Year/Month/Day only.
+- A **Step and profile** fieldset contains: Step (Astro minutes), Duration (Days),
+  Profile selector, and **Generate** and **Reset** buttons.
+- No preview block is shown.
+- No error message is shown.
+- No `<script>` tag in the page source.
+
+---
+
+#### TC-016-03 — Valid range: scribal preview and download link
+
+**Action:** On the `/ephemeris` page, enter:
+
+- Start pulse: `104548096103`
+- End pulse: `104548099703`
+- Step (minutes): `5`
+- Profile: **Scribal**
+
+Click **Generate**.
+
+**Pass criteria:**
+
+- HTTP 200; no error message.
+- The URL in the address bar contains `start_pulse=104548096103`,
+  `end_pulse=104548099703`, `step_minutes=5`, and `profile=scribal` as query
+  parameters (the form is a GET form; results are shareable).
+- A **Scribal preview** heading appears, followed by a scrollable `<pre>`
+  block containing JSON.
+- The JSON envelope includes `"profile": "scribal"`, `"start_pulse"`,
+  `"end_pulse"`, `"step_pulses"`, and a `"steps"` array.
+- The `"steps"` array contains at most 5 entries (truncated preview).
+- Each step entry includes `"pulse"`, `"astro_day"`, and `"time_of_day"` keys.
+- A **Download scribal JSON** link is present below the preview.
+
+---
+
+#### TC-016-04 — Valid range: kinematic preview and download link
+
+**Action:** Same range as TC-016-03, but select **Kinematic** as the profile
+and click **Generate**.
+
+**Pass criteria:**
+
+- HTTP 200; no error message.
+- A **Kinematic preview** heading appears, followed by a `<pre>` block.
+- The JSON envelope includes `"profile": "kinematic"` and a `"tracked_bodies"`
+  list (at least 15 entries: the 8 moons and 7 planets).
+- The `"steps"` array contains at most 5 entries.
+- Each step entry includes `"pulse"` and a `"bodies"` dict keyed by body ID.
+- Each body entry includes `"alt"`, `"az"`, `"ill"`, and `"up"` keys.
+- Bodies below the horizon appear in the dict with `"up": false` and a
+  negative `"alt"` value — they are not omitted.
+- A **Download kinematic JSON** link is present below the preview.
+
+---
+
+#### TC-016-05 — Both profiles: two previews shown
+
+**Action:** Same range as TC-016-03, but select **Both** as the profile and
+click **Generate**.
+
+**Pass criteria:**
+
+- HTTP 200; no error message.
+- Both a **Scribal preview** and a **Kinematic preview** heading appear, each
+  with its own `<pre>` block.
+- Both preview blocks contain valid-looking JSON.
+- Two download links are present: one for scribal and one for kinematic.
+
+---
+
+#### TC-016-06 — Step below minimum: form error, no 500
+
+**Action:** Enter the same range as TC-016-03, but set Step (minutes) to `1`
+(below the 5-minute floor), and click **Generate**.
+
+**Pass criteria:**
+
+- HTTP 200 (not a 500 error page).
+- An inline error message appears indicating the step is too small or below
+  the minimum (e.g. references "minimum", "5 min", or "300 pulses").
+- No preview block is rendered.
+
+---
+
+#### TC-016-07 — Range exceeding 30-day cap: form error, no 500
+
+**Action:** Enter:
+
+- Start pulse: `104548096103`
+- End pulse: `104550774503` (≈ 31 days beyond start — over the 30-day cap)
+- Step (minutes): `5`
+- Profile: **Scribal**
+
+Click **Generate**.
+
+**Pass criteria:**
+
+- HTTP 200 (not a 500 error page).
+- An inline error message appears indicating the range is too large or
+  exceeds the maximum (e.g. references "maximum", "30 days", "2592000",
+  or "exceeds").
+- No preview block is rendered.
+
+---
+
+#### TC-016-08 — Download returns attachment with correct filename
+
+**Action:** Using the result from TC-016-03 (scribal, 1-hour range, 5-min
+step), click the **Download scribal JSON** link.
+
+**Pass criteria:**
+
+- The browser offers to save a file (Content-Disposition: attachment).
+- The suggested filename is exactly:
+  `ephemeris_scribal_p104548096103-104548099703_s300.json`
+- The saved file contains valid JSON with `"profile": "scribal"` and a
+  `"steps"` array containing **13 entries**
+  (pulses 0, 300, 600, … 3600 relative to start = 13 steps inclusive).
+- Repeat for the **Download kinematic JSON** link; the suggested filename is:
+  `ephemeris_kinematic_p104548096103-104548099703_s300.json`
+  with `"profile": "kinematic"`.
+
+---
+
+#### TC-016-09 — Download is deterministic: reload reproduces identical bytes
+
+**Action:**
+
+1. Click the scribal download link from TC-016-03 and save the file as
+   `ephemeris_a.json`.
+2. Click the same link again (or copy the download URL and open it in a new
+   tab) and save the file as `ephemeris_b.json`.
+
+**Pass criteria:**
+
+- The two files are byte-for-byte identical (same content, same byte count).
+- You can verify on the VM with `diff ephemeris_a.json ephemeris_b.json`;
+  expected output: nothing (no differences).
+
+---
+
+#### TC-016-10 — Astro day start with Duration (Days)
+
+**Action:** On the `/ephemeris` page, click **Reset**, then enter:
+
+- Start Astro day: `1210048`
+- Duration (Days): `1`
+- Step (Astro minutes): `30`
+- Profile: **Scribal**
+
+Click **Generate**.
+
+**Pass criteria:**
+
+- HTTP 200; no error message.
+- A scribal preview renders.
+- The `"start_pulse"` in the JSON envelope is `104548060800`
+  (Astro day 1210048 at midnight, offset 0).
+- A **Computed end** line is shown on the page, citing pulse `104548147200`
+  (start + 86400), Astro Day 1210049, and the equivalent Fatunik and Terpin
+  dates.
+- All input types are cross-populated: the Pulse Start, Fatunik Start, and
+  Terpin Start fields are filled with the resolved equivalents.
+- A download link is present and functional.
+
+---
+
+#### TC-016-11 — Fatunik date start with Duration (Days)
+
+**Action:** On the `/ephemeris` page, click **Reset**, then enter:
+
+- Start Fatunik date: year `1782`, month `10`, day `29`
+- Duration (Days): `1`
+- Step (Astro minutes): `60`
+- Profile: **Scribal**
+
+Click **Generate**.
+
+**Pass criteria:**
+
+- HTTP 200; no error message.
+- A scribal preview renders. The `"start_pulse"` in the envelope is
+  `104548082400` (Fatunik T1782 M10 D29 day-start at 06:00:00 Astro).
+- The **Computed end** line shows pulse `104548168800` (start + 86400),
+  and the Fatunik and Terpin equivalent end dates.
+- Each step entry has a `"time_of_day"` in HH:MM:SS format.
+- No field in the scribal JSON contains the strings `"fatunik"`, `"terpin"`,
+  `"shur"`, `"keyt"`, or `"kell"` (the export is technical, not lore-rendered).
+- All input types are cross-populated in the form.
+- A download link is present.
+
+---
+
+#### TC-016-12 — Page source contains no JavaScript
+
+**Action:** With a valid preview rendered (e.g. TC-016-03 result), view the
+HTML source (Ctrl+U or browser DevTools → Sources).
+
+**Pass criteria:**
+
+- No `<script>` tag appears anywhere in the HTML source.
+- No `javascript:` URI appears in any attribute.
+- The only embedded code is the `<style>` block in `<head>`.
+
+---
+
+#### TC-016-13 — URL bookmarkability: reload reproduces the same view
+
+**Action:**
+
+1. Submit the form from TC-016-03 (Pulse mode, scribal, 1-hour range, 5-min step).
+2. Copy the full URL from the address bar.
+3. Paste it into a new browser tab and press Enter.
+
+**Pass criteria:**
+
+- The new tab renders the identical preview — same JSON envelope values,
+  same step count, same step content.
+- The Pulse Start and End fields are repopulated from the query parameters.
+
+---
+
+#### TC-016-14 — Reset button clears all fields
+
+**Action:**
+
+1. Submit the form from TC-016-10 (Astro day start, Duration 1, step 30, scribal)
+   so that all input types are cross-populated.
+2. Click **Reset**.
+
+**Pass criteria:**
+
+- All input fields are cleared to empty (Pulse Start and End, Astro Day Start,
+  Fatunik Year/Month/Day Start, Terpin Year/Month/Day Start, Step, Duration, Profile
+  reverts to its default).
+- The preview block and Computed end line disappear (the page is still at the
+  same URL; no network request is made).
+- The error section is empty.
+
+---
+
+#### TC-016-15 — Duration missing with date-mode start: error, no 500
+
+**Action:** On the `/ephemeris` page, click **Reset**, then enter:
+
+- Start Astro day: `1210048`
+- Step (Astro minutes): `5`
+- Leave **Duration (Days)** empty.
+
+Click **Generate**.
+
+**Pass criteria:**
+
+- HTTP 200 (not a 500 error page).
+- An inline error message appears referencing "Duration" or "required".
+- No preview block is rendered.
+
+#### TC-016-16 — Step equals or exceeds duration: form error, no 500
+
+**Action:** On the `/ephemeris` page, click **Reset**, then enter:
+
+- Start Astro day: `1`
+- Duration (Days): `1`
+- Step (Astro minutes): `1440` (= exactly 1 day — equals the total duration)
+- Profile: **Scribal**
+
+Click **Generate**.
+
+**Pass criteria:**
+
+- HTTP 200 (not a 500 error page).
+- An inline error message appears indicating the step equals or exceeds the
+  duration (e.g. references "Step", "equals", "exceeds", or "duration").
+- No preview block is rendered.
+
+---
+
+### SPEC-016 Results — 2026-06-14
+
+| TC | Result | Notes |
+|---|---|---|
+| TC-016-01 | Pass | |
+| TC-016-02 | Pass | |
+| TC-016-03 | Pass | |
+| TC-016-04 | Pass | |
+| TC-016-05 | Pass | |
+| TC-016-06 | Pass | |
+| TC-016-07 | Pass | |
+| TC-016-08 | Pass | |
+| TC-016-09 | Pass | |
+| TC-016-10 | Pass | |
+| TC-016-11 | Pass | |
+| TC-016-12 | Pass | |
+| TC-016-13 | Pass | |
+| TC-016-14 | Pass | |
+| TC-016-15 | Pass | |
+| TC-016-16 | Pass | |
+
+---
+
+### SPEC-016 Teardown
+
+Stop the Flask server with `Ctrl+C` in the VM terminal. Close the SSH tunnel
+terminal.

@@ -1,7 +1,7 @@
 # /config/ephemeris_data.toml - ephemeris throttle and tracked bodies (DD-0009).
 [settings]
 step_floor_pulses = 300       # 5 minutes
-range_cap_pulses  = 604800    # 7 days
+range_cap_pulses  = 2592000   # 30 days
 tracked_bodies = [
   "endor", "sella", "lelako", "jembor", "calumbra", "zehembra", "shunna", "kanka",
   "aesthra", "lethra", "beyarus", "dramond", "thurnak", "zelven", "kreetha",
