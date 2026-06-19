@@ -30,7 +30,7 @@
     <input type="number" id="fatunik_year" name="fatunik_year" step="1" style="width:6rem"
            value="{{ fatunik_date.year if fatunik_date else '' }}">
     <label for="fatunik_month" style="width:5rem; margin-left:.5rem">Month</label>
-    <input type="number" id="fatunik_month" name="fatunik_month" min="1" max="12" step="1" style="width:4rem"
+    <input type="number" id="fatunik_month" name="fatunik_month" min="1" max="13" step="1" style="width:4rem"
            value="{{ fatunik_date.month if fatunik_date else '' }}">
     <label for="fatunik_day" style="width:4rem; margin-left:.5rem">Day</label>
     <input type="number" id="fatunik_day" name="fatunik_day" min="1" max="30" step="1" style="width:4rem"
@@ -48,7 +48,7 @@
     <input type="number" id="terpin_month" name="terpin_month" min="1" max="13" step="1" style="width:4rem"
            value="{{ terpin_date.month if terpin_date else '' }}">
     <label for="terpin_day" style="width:4rem; margin-left:.5rem">Day</label>
-    <input type="number" id="terpin_day" name="terpin_day" min="1" max="30" step="1" style="width:4rem"
+    <input type="number" id="terpin_day" name="terpin_day" min="1" max="37" step="1" style="width:4rem"
            value="{{ terpin_date.day if terpin_date else '' }}">
     <button type="submit">Query</button>
   </fieldset>

@@ -1,5 +1,52 @@
 # Dev log
 
+## 2026-06-19 — SPEC-019: UAT complete (all 6 TCs pass)
+
+**SPEC-019 UAT passed** (TC-019-01 through TC-019-06). During TC-019-04,
+the browser rejected a valid Terpin long-turn day (37) before the request
+reached the server: the `terpin_day` and `fatunik_month` HTML5 `min`/`max`
+attributes on `/moons`, `/planets`, `/sky`, and `/ephemeris` predated
+SPEC-019 and were too tight (`fatunik_month` capped at 12 instead of 13;
+`terpin_day` capped at 30/35 instead of 37 — the Terpin long-turn festival
+length). Normalised all eight fields to `month max="13"`,
+`fatunik_day max="30"`, `terpin_day max="37"` across the four templates.
+Full suite re-run after the fix: 599 passed; pre-commit clean.
+
+**Next:** committed; performance testing (SPEC-018) is the next phase.
+
+## 2026-06-19 — SPEC-019: festival-month validation — dev complete
+
+Implemented REQ-FUN-012 / DD-0011: `fatunik_to_pulse` and `terpin_to_pulse`
+(`src/sask/pulse.py`) now reject an out-of-range month or day with a typed
+`CalendarRangeError(ValueError)` instead of silently rolling into the next
+month. Added `fatunik_month_length`/`terpin_month_length` as the single
+source of truth for a turn's per-month day count (extracted from the
+converters' existing year-type logic — `_fatunik_festival_length` and
+`_terpin_festival_length` — so converter and validator can never disagree).
+
+No web-layer changes were needed: `_resolve_pulse`/`_resolve_endpoint`
+(`src/sask/web/routes.py`) already catch `ValueError` from the converters and
+render the existing in-page error, covering `/`, `/moons`, `/planets`,
+`/sky`, and the `/ephemeris` start resolver for free.
+
+20 new tests in `tests/test_spec_019.py` (festival boundaries across Fatunik
+standard/leap and Terpin regular/long/super-long, regular-month overflow,
+month-out-of-range, error-message content, pulse/Astro-day unaffected, and
+web-layer rendering). Full suite: 599 passed, no regressions. Pre-commit
+checks pass. `design/decisions/dd-0011-festival-months.toml` and
+`design/specs/spec-019-festival-months.toml` status updated to "accepted".
+
+**Next:** UAT — see `docs/user_testing.md` SPEC-019 section (TC-019-01..06).
+
+## 2026-06-19 — Docs reconciliation: ephemeris range cap text
+
+DD-0009 and SPEC-015 still described the ephemeris range cap as 7 days
+(~2,016 steps), left over from before the SPEC-016 UAT change. Config
+(`config/ephemeris_data.toml`) is and remains the source of truth at 30 days
+(2,592,000 pulses); updated DD-0009 and SPEC-015 prose to 30 days (~8,640
+records) to match. SPEC-016 already read 30 days; no change needed there.
+No code or config touched.
+
 ## 2026-06-14 — SPEC-017: UAT complete (all 10 TCs pass)
 
 **SPEC-017 UAT passed** (all 10 test cases — TC-017-01 through TC-017-10).

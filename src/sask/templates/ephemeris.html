@@ -48,7 +48,7 @@
       <input type="number" name="start_fatunik_year" step="1" style="width:6rem"
              value="{{ start_fatunik_date.year if start_fatunik_date else '' }}">
       <span style="font-size:.9rem; margin-left:.4rem">Month</span>
-      <input type="number" name="start_fatunik_month" min="1" max="14" step="1" style="width:4rem"
+      <input type="number" name="start_fatunik_month" min="1" max="13" step="1" style="width:4rem"
              value="{{ start_fatunik_date.month if start_fatunik_date else '' }}">
       <span style="font-size:.9rem; margin-left:.4rem">Day</span>
       <input type="number" name="start_fatunik_day" min="1" max="30" step="1" style="width:4rem"
@@ -66,10 +66,10 @@
       <input type="number" name="start_terpin_year" step="1" style="width:6rem"
              value="{{ start_terpin_date.year if start_terpin_date else '' }}">
       <span style="font-size:.9rem; margin-left:.4rem">Month</span>
-      <input type="number" name="start_terpin_month" min="1" max="14" step="1" style="width:4rem"
+      <input type="number" name="start_terpin_month" min="1" max="13" step="1" style="width:4rem"
              value="{{ start_terpin_date.month if start_terpin_date else '' }}">
       <span style="font-size:.9rem; margin-left:.4rem">Day</span>
-      <input type="number" name="start_terpin_day" min="1" max="35" step="1" style="width:4rem"
+      <input type="number" name="start_terpin_day" min="1" max="37" step="1" style="width:4rem"
              value="{{ start_terpin_date.day if start_terpin_date else '' }}">
       {% if start_time_of_day %}&ensp;<span style="color:#555; font-size:.9rem;">{{ start_time_of_day }}</span>{% endif %}
       {% if end_terpin_date %}&ensp;&ensp;<span style="color:#555; font-size:.9rem;"><strong>End:</strong> T{{ end_terpin_date.year }} M{{ end_terpin_date.month }} D{{ end_terpin_date.day }} &middot; {{ end_time_of_day }}</span>{% endif %}

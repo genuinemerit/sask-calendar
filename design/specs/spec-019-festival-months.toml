@@ -1,0 +1,55 @@
+id="SPEC-019"
+title="Festival-month date validation: converter check, shared length accessor, and rendering"
+status="accepted"
+
+[implements]
+requirements=["REQ-FUN-012"]
+dds=["DD-0011","DD-0002","DD-0003"]
+
+[scope]
+in_scope=[
+  "A typed calendar error raised by fatunik_to_pulse and terpin_to_pulse for an out-of-range month or day.",
+  "A single authoritative per-turn month-length accessor per calendar (civil_month_length), extracted from or reused within the existing year-type logic, called by both converter and validation.",
+  "Web-layer catch-and-render of the error across all civil-date entry points and the ephemeris start/end resolvers.",
+  "A test matrix across Fatunik standard/leap and Terpin regular/long/super-long turns.",
+]
+out_of_scope=[
+  "Any change to how leap turns or festival lengths are computed (SPEC-003 unchanged); this spec only consults that logic.",
+  "Pulse and Astro-day inputs (unbounded numeric; unaffected).",
+  "Lunar-calendar day ranges (different model; outside this gap).",
+]
+[deliverables]
+accessor="""
+civil_month_length(turn, month) per calendar (Fatunik, Terpin): returns the day
+count for that month on that turn, using the converter's own year-type
+determination. The festival month returns the turn-type-dependent length; regular
+months return their fixed length. If the helper already exists implicitly inside the
+converter, extract it so converter and validator share one definition.
+"""
+validation="""
+fatunik_to_pulse and terpin_to_pulse pre-check that month is in range and that day
+is within [1, civil_month_length(turn, month)], raising a typed CalendarRangeError
+(subclass of ValueError) whose message names the month, the turn, and the valid
+maximum. No silent normalisation remains for out-of-range days.
+"""
+rendering="""
+The route resolvers (_resolve_pulse and _resolve_endpoint) let CalendarRangeError
+propagate to the existing in-page error rendering (SPEC-005), so the four date forms
+and both ephemeris endpoints show a clear message rather than a wrong date.
+"""
+tests="""
+Parametrised tests assert rejection just past, and acceptance at, the festival
+maximum for: Fatunik standard (5), Fatunik leap (6), Terpin regular, Terpin long
+(considerably longer), and Terpin super-long (the engine's count). The concrete
+maxima are read from civil_month_length / the engine for the chosen turns rather
+than hardcoded in the test. A regular-month overflow case and an ephemeris-resolver
+case are included.
+"""
+[acceptance]
+checks=[
+  "Out-of-range festival days are rejected and boundary days accepted across all five year-type cases.",
+  "Regular-month overflow is rejected; pulse and Astro-day inputs are unaffected.",
+  "The error renders in-page on the four date forms and on the ephemeris endpoints.",
+  "Validator and converter share one length accessor; no festival length is duplicated.",
+  "SPEC-003 leap and length computations are unchanged.",
+]

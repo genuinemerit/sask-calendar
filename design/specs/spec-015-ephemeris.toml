@@ -9,7 +9,7 @@ dds=["DD-0009","DD-0002"]
 [scope]
 in_scope=[
   "get_sky_series(start_pulse, end_pulse, step_pulses, profile): a pure iterator over the per-pulse surfaces.",
-  "Throttle enforcement: step >= 300 pulses (5 min), range <= 604800 pulses (7 days); reject otherwise.",
+  "Throttle enforcement: step >= 300 pulses (5 min), range <= 2592000 pulses (30 days); reject otherwise.",
   "Per-day context (rise/transit/set, season) computed once per Astro day.",
   "Scribal and kinematic JSON renderers per the accepted formats.",
   "Ephemeris config (throttle bounds, tracked-body set).",
@@ -38,7 +38,7 @@ Both keyed by pulse; no civil/lore terms.
 """
 [acceptance]
 checks=[
-  "Steps are produced at exactly the requested cadence; step < 5 min or range > 7 days is refused.",
+  "Steps are produced at exactly the requested cadence; step < 5 min or range > 30 days is refused.",
   "Identical (start, end, step, profile, config) yields byte-identical JSON.",
   "Per-day context appears once per Astro day; steps reference it.",
   "Kinematic includes below-horizon bodies (negative altitude) with up=false.",

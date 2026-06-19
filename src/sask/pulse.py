@@ -20,6 +20,10 @@ from .config_loader import (
 from .message import CalendarDate, PulseInfo
 
 
+class CalendarRangeError(ValueError):
+    """Raised when a civil calendar date's month or day is out of range for its turn."""
+
+
 # ── Core arithmetic (SPEC-002) ────────────────────────────────────────────────
 
 
@@ -80,6 +84,37 @@ def _fatunik_is_leap(year: int, fl: FatunikLeap) -> bool:
     return year % c == 0 and (year % skip != 0 or year % restore == 0)
 
 
+def _fatunik_festival_length(year: int, fc: FatunikConfig) -> int:
+    """Return this turn's Fatunik festival-month (month 1) day count."""
+    fm = fc.months
+    return (
+        fm.festival_days_leap
+        if _fatunik_is_leap(year, fc.leap)
+        else fm.festival_days_standard
+    )
+
+
+def fatunik_month_length(year: int, month: int, cfg: AppConfig) -> int:
+    """Return the day count for `month` on Fatunik turn `year`.
+
+    Month 1 is the festival month, whose length depends on whether `year`
+    is a Fatunik leap turn; months 2..N are fixed-length. Raises
+    CalendarRangeError if `month` is outside the calendar's valid range.
+    """
+    fc: FatunikConfig = cfg.fatunik
+    max_month = fc.months.regular_month_count + 1
+    if not 1 <= month <= max_month:
+        raise CalendarRangeError(
+            f"Fatunik month {month} is out of range for turn {year} "
+            f"(valid months: 1-{max_month})"
+        )
+    return (
+        _fatunik_festival_length(year, fc)
+        if month == 1
+        else fc.months.regular_month_days
+    )
+
+
 def _fatunik_days_before_year(year: int, fl: FatunikLeap) -> int:
     """Days from the Fatunik epoch start up to (but not including) the start of year."""
     n = year - 1
@@ -98,6 +133,37 @@ def _fatunik_year_of_day(day_0: int, fl: FatunikLeap) -> int:
 
 
 # ── Terpin calendar helpers ───────────────────────────────────────────────────
+
+
+def _terpin_festival_length(year: int, tc_cal: TerpinConfig) -> int:
+    """Return this turn's Terpin festival-month (month 1) day count."""
+    tm, tl = tc_cal.months, tc_cal.leap
+    if year % tl.super_long_year_cycle == 0:
+        return tm.festival_days_super_long
+    if year % tl.long_year_cycle == 0:
+        return tm.festival_days_long
+    return tm.festival_days_standard
+
+
+def terpin_month_length(year: int, month: int, cfg: AppConfig) -> int:
+    """Return the day count for `month` on Terpin turn `year`.
+
+    Month 1 is the festival month, whose length depends on whether `year`
+    is a Terpin long or super-long turn; months 2..N are fixed-length.
+    Raises CalendarRangeError if `month` is outside the calendar's valid range.
+    """
+    tc_cal: TerpinConfig = cfg.terpin
+    max_month = tc_cal.months.regular_month_count + 1
+    if not 1 <= month <= max_month:
+        raise CalendarRangeError(
+            f"Terpin month {month} is out of range for turn {year} "
+            f"(valid months: 1-{max_month})"
+        )
+    return (
+        _terpin_festival_length(year, tc_cal)
+        if month == 1
+        else tc_cal.months.regular_month_days
+    )
 
 
 def _terpin_days_before_year(year: int, tl: TerpinLeap) -> int:
@@ -139,11 +205,7 @@ def astro_to_fatunik(pulse: int, cfg: AppConfig) -> CalendarDate:
     day_in_year = day_0 - _fatunik_days_before_year(year, fc.leap) + 1
 
     fm = fc.months
-    fest = (
-        fm.festival_days_leap
-        if _fatunik_is_leap(year, fc.leap)
-        else fm.festival_days_standard
-    )
+    fest = _fatunik_festival_length(year, fc)
     if day_in_year <= fest:
         month, day = 1, day_in_year
     else:
@@ -160,11 +222,14 @@ def fatunik_to_pulse(date: CalendarDate, cfg: AppConfig) -> int:
     tc = cfg.time_constants
     fm = fc.months
 
-    fest = (
-        fm.festival_days_leap
-        if _fatunik_is_leap(date.year, fc.leap)
-        else fm.festival_days_standard
-    )
+    max_day = fatunik_month_length(date.year, date.month, cfg)
+    if not 1 <= date.day <= max_day:
+        raise CalendarRangeError(
+            f"Fatunik day {date.day} is out of range for month {date.month} "
+            f"of turn {date.year} (valid days: 1-{max_day})"
+        )
+
+    fest = _fatunik_festival_length(date.year, fc)
     if date.month == 1:
         day_in_year = date.day
     else:
@@ -188,14 +253,7 @@ def astro_to_terpin(pulse: int, cfg: AppConfig) -> CalendarDate:
     day_in_year = day_0 - _terpin_days_before_year(year, tc_cal.leap) + 1
 
     tm = tc_cal.months
-    tl = tc_cal.leap
-    n = year
-    if n % tl.super_long_year_cycle == 0:
-        fest = tm.festival_days_super_long
-    elif n % tl.long_year_cycle == 0:
-        fest = tm.festival_days_long
-    else:
-        fest = tm.festival_days_standard
+    fest = _terpin_festival_length(year, tc_cal)
 
     if day_in_year <= fest:
         month, day = 1, day_in_year
@@ -214,14 +272,14 @@ def terpin_to_pulse(date: CalendarDate, cfg: AppConfig) -> int:
     tm = tc_cal.months
     tl = tc_cal.leap
 
-    n = date.year
-    if n % tl.super_long_year_cycle == 0:
-        fest = tm.festival_days_super_long
-    elif n % tl.long_year_cycle == 0:
-        fest = tm.festival_days_long
-    else:
-        fest = tm.festival_days_standard
+    max_day = terpin_month_length(date.year, date.month, cfg)
+    if not 1 <= date.day <= max_day:
+        raise CalendarRangeError(
+            f"Terpin day {date.day} is out of range for month {date.month} "
+            f"of turn {date.year} (valid days: 1-{max_day})"
+        )
 
+    fest = _terpin_festival_length(date.year, tc_cal)
     if date.month == 1:
         day_in_year = date.day
     else:

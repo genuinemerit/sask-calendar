@@ -27,7 +27,7 @@ alternatives = [
 summary = """
 1. Ephemeris = a deterministic time-series of sky scenes over [start, end] at a
    fixed step, iterating the existing per-pulse surfaces. Throttle: step floor
-   5 minutes, range cap 7 days (~2,016 steps worst case).
+   5 minutes, range cap 30 days (~8,640 records worst case).
 2. Two profiles. Scribal: a readable descriptive record per step (the manuscript
    payload), carrying pulse, Astro day, and time-of-day. Kinematic: compact
    per-body alt/az, illumination, and above-horizon flag for every tracked body,

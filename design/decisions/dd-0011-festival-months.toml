@@ -1,0 +1,62 @@
+id     = "DD-0011"
+title  = "Festival-month date validation for civil calendar inputs"
+status = "accepted"
+date   = "2026-06-19"
+
+[context]
+problem = """
+Civil date inputs (Fatunik and Terpin) accept a day number beyond the festival
+month's actual length and silently roll it into the next month - e.g. Fatunik
+month 1, day 10 on a standard turn, where the festival month has only 5 days,
+lands in month 2. The converters normalise consistently but never reject, so a
+typo becomes a plausible-looking wrong date. The festival month's length is
+year-type dependent (Fatunik 5 on standard turns and 6 on leap turns; Terpin's
+standard length on regular turns, a considerably longer length on long turns,
+and the engine's count on super-long turns), so a fixed bound cannot express it.
+"""
+constraints = [
+  "Single source of truth: the valid range must come from the same per-turn length logic the converter already uses (SPEC-003), never a duplicated constant.",
+  "Every civil-date entry point must be covered, including the ephemeris start/end resolvers, not just the page forms.",
+  "Engine stays pure (DD-0002); the web layer renders errors (DD-0003).",
+]
+alternatives = [
+  "Web-layer-only check with a hardcoded festival length per year type - rejected: duplicates the leap rule (drift risk) and misses the ephemeris resolver path.",
+  "Keep silent normalisation - rejected: it converts user typos into plausible wrong dates with no signal.",
+]
+
+[decision]
+summary = """
+1. Validate at the engine converter, the single choke point all input paths share.
+   fatunik_to_pulse and terpin_to_pulse reject an out-of-range month or day by
+   raising a typed calendar error; the web layer catches it and renders the
+   existing in-page error message. This protects the date forms on /sky, /moons,
+   /planets and the ephemeris resolvers in one place.
+2. The day's valid range is [1, civil_month_length(turn, month)], where
+   civil_month_length is one authoritative accessor per calendar - extracted from,
+   or reused within, the converter's own year-type logic. For the festival month it
+   returns that turn's festival length (Fatunik standard/leap; Terpin
+   standard/long/super-long); for regular months it returns their fixed length.
+3. Because the rule is "day within the month's true length for that turn," it also
+   catches regular-month overflow at no extra cost; the festival month is simply the
+   case that requires year-type awareness.
+"""
+rationale = """
+Deriving the bound from the converter's own length logic guarantees validator and
+converter can never disagree, and a single engine-level check covers every entry
+point without per-route duplication.
+"""
+
+[consequences]
+positive = [
+  "Typos in civil dates fail loudly instead of resolving to a wrong date.",
+  "One check protects all current and future callers of the converters.",
+]
+negative = [
+  "Converter contract changes from normalise-silently to reject-out-of-range; any test asserting the old overflow updates.",
+]
+followups = ["SPEC-019 implements the validation, the shared length accessor, and the test matrix across year types."]
+
+[links]
+requirements = ["REQ-FUN-012"]
+dds = ["DD-0002","DD-0003"]
+specs = ["SPEC-003"]

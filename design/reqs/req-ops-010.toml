@@ -1,0 +1,16 @@
+id="REQ-OPS-010"
+title="Performance measurement and budgets"
+category="operational"
+priority="should"
+statement="The application's performance is measured against stated budgets by a reproducible, deterministic harness in two layers: engine microbenchmarks over the pure hot paths, and end-to-end timings against a live gunicorn server. Interactive pages target under ~500 ms server-side per request; the worst-case ephemeris request (30-day range, 5-minute step, ~8,640 records, either profile) targets under ~3-5 s as a download-shaped request. Budgets are provisional until a local baseline is recorded, and are re-validated on the deployment target. Results are recorded under version control as a regression baseline."
+rationale="A lean, single-author deployment means optimising only what is measured to be slow (REQ-OPS-009 deferred any cache to a measured trigger). A reproducible harness over the deterministic engine gives a stable baseline that catches algorithmic regressions cheaply and lets us decide, on evidence, whether the deferred range-query cache is ever warranted."
+acceptance=[
+  "Engine hot paths, the four interactive endpoints, and the ephemeris endpoint across a defined range/step/profile grid (including the worst case) each yield a recorded timing with median and spread.",
+  "Runs are reproducible: fixed inputs, warm-up, and repeats; the deterministic engine gives stable input and output across runs.",
+  "Results are written to a versioned location as a baseline later runs can diff against.",
+  "A measured breach of the ephemeris budget is the documented trigger for reconsidering the deferred range-query cache; no cache is added without it.",
+  "Budgets and the sweep grid are defined in one place the harness reads, not scattered as thresholds across code.",
+]
+[links]
+dds=["DD-0002","DD-0003"]
+specs=["SPEC-018"]

@@ -1,0 +1,15 @@
+id="REQ-FUN-012"
+title="Festival-month date validation"
+category="functional"
+priority="must"
+statement="Civil date inputs are validated: a day outside the valid range for its month in the given turn is rejected with a user-visible error instead of silently rolling into the next month. The festival month's valid range is the year-type-dependent length the calendar logic itself uses for that turn - 5 days on a standard Fatunik turn and 6 on a leap Fatunik turn, and Terpin's standard length on a regular turn, a considerably longer length on a long turn, and the engine's count on a super-long turn. The valid range is obtained from the same per-turn length logic the converter uses, never a hardcoded constant, and the check fires wherever a civil date is resolved, including the ephemeris endpoints."
+rationale="Festival-month length varies by turn type, so a plausible day number (e.g. day 10) can be invalid on one turn and valid on another. Silent normalisation turns such a typo into a wrong but believable date; rejecting it - using the converter's own length logic so the two never diverge - keeps civil input honest across every entry point."
+acceptance=[
+  "A festival-month day beyond that turn's festival length is rejected with a clear message - verified for Fatunik standard (day > 5), Fatunik leap (day > 6), Terpin regular, Terpin long, and the Terpin super-long case.",
+  "The boundary day is accepted: day 5 on a standard Fatunik turn, day 6 on a leap Fatunik turn, and the corresponding maxima for the Terpin regular/long/super-long cases.",
+  "A regular-month day beyond that month's fixed length is likewise rejected.",
+  "The valid range is read from the same per-turn length logic the converter uses; no festival length is duplicated in the validator.",
+  "Validation fires on every civil-date entry point: the date inputs on /sky, /moons, /planets, and the ephemeris start and end resolvers.",
+]
+[links]
+dds=["DD-0011","DD-0002","DD-0003"]

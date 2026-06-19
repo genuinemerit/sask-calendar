@@ -1,0 +1,63 @@
+id="SPEC-018"
+title="Performance test harness: engine benchmarks and end-to-end timings (local-first)"
+status="proposed"
+
+[implements]
+requirements=["REQ-OPS-010"]
+dds=["DD-0002","DD-0003"]
+
+[scope]
+in_scope=[
+  "Layer 1: pytest-benchmark microbenchmarks over the engine hot paths.",
+  "Layer 2: a standard-library-only Python harness timing the live endpoints against a locally-running, single-worker gunicorn (no Caddy, no JavaScript path).",
+  "A defined range/step/profile grid for the ephemeris sweep, including the 30-day worst case, exercised via both the preview and download routes.",
+  "Recording of results (median, spread, and download payload size) to a versioned baseline location.",
+  "A runner under tools/ and run instructions captured in the devlog.",
+]
+out_of_scope=[
+  "Concurrency or load testing (single-author site; deferred).",
+  "Caddy/TLS timing and any droplet measurement (deferred to the deployment round).",
+  "Profilers (cProfile/py-spy) and memory tooling (tracemalloc/memray) - used ad hoc only if a path measures slow, not part of the standing harness.",
+  "Any optimisation or cache work - this spec measures; it does not change the engine.",
+]
+[deliverables]
+dependencies="pytest-benchmark added as a Poetry dev dependency; no new runtime dependency. CLI diagnostics, if ever needed, come from the Nix devShell."
+layer1="""
+tests/perf/ (pytest-benchmark): benchmark get_sky_scene, get_sky_series across the
+grid, render_scribal_json, render_kinematic_json, get_lunar_date, get_cofullness,
+get_apparitions, get_star_context, and the lore renderers. Record a baseline via
+--benchmark-autosave; --benchmark-compare is available for later regression checks
+(not wired into CI by this spec). The swept get_sky_series timings should make its
+scaling visible (expected linear in step count, with per-day context computed once
+per Astro day). Separately, confirm by inspection that the /sky 'next co-fullness'
+forward search is bounded; if it is not, record that as a finding for follow-up.
+"""
+layer2="""
+tools/perf_http.py (standard library only: urllib.request, time.perf_counter,
+statistics, json, argparse): targets an already-running local gunicorn (single
+worker) at a configurable base URL. Times '/', '/sky', '/moons', '/planets' at
+story_now, and /ephemeris plus /ephemeris/download across the grid for both
+profiles. Reports median and spread per endpoint, records download payload sizes,
+and writes a JSON result file to the baseline location. A short note documents the
+single-worker gunicorn launch line; hyperfine is mentioned as an optional manual
+probe, not required.
+"""
+grid="""
+Ephemeris sweep: ranges {1 day, 7 days, 30 days} x steps {5 min, 1 hour} x profiles
+{scribal, kinematic}; the worst case (30 days / 5 min, both profiles) is additionally
+exercised through both the preview and the download route.
+"""
+results="""
+Baseline results written under tests/results/perf/, alongside the UAT records, named
+by date so later runs diff against them. The provisional budgets (REQ-OPS-010) are
+checked against the recorded medians and either confirmed or revised, with the
+outcome noted in the devlog.
+"""
+[acceptance]
+checks=[
+  "pytest-benchmark runs within the existing suite and emits per-path timings; a saved baseline exists and a second run can compare against it.",
+  "The HTTP harness times all four pages and the full ephemeris grid against live gunicorn, reports median/spread and download sizes, and writes a versioned result file.",
+  "The swept get_sky_series timings are recorded so its scaling is visible; the 'next co-fullness' search is confirmed bounded or flagged as a finding.",
+  "No engine code is modified by this spec, and no runtime dependency is added.",
+  "Recorded medians are compared against the provisional budgets and the outcome is noted in the devlog.",
+]

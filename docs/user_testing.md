@@ -1562,3 +1562,127 @@ rendering (e.g., "1st day … 51st turning"). Test updated accordingly.
 
 Stop the Flask server with `Ctrl+C` in the VM terminal. Close the SSH tunnel
 terminal.
+
+## SPEC-019 — Festival-month date validation
+
+**Branch:** main | **Status:** UAT complete
+
+### SPEC-019 Setup
+
+Same as SPEC-016/017. If the Flask server is already running, skip to step 3.
+
+**1. Open an SSH tunnel from the Ubuntu host:**
+
+```bash
+ssh -L 5000:localhost:5000 sask-dev
+```
+
+Keep this terminal open.
+
+**2. In the VM session, start the Flask development server:**
+
+```bash
+cd ~/Code/sask-calendar
+bash tools/start_web.sh
+```
+
+Expected output: `Running on http://127.0.0.1:5000`
+
+**3. Open a browser on the Ubuntu host. The pages under test are:**
+
+```text
+http://localhost:5000/moons
+http://localhost:5000/ephemeris
+```
+
+**Reference values used in the test cases below (from `config/calendars.toml`):**
+
+| Label | Turn | Festival length | Meaning |
+|---|---|---|---|
+| Fatunik standard | T1 | 5 days | Non-leap Fatunik turn |
+| Fatunik leap | T4 | 6 days | Leap Fatunik turn (4/100/400 rule) |
+| Terpin long | T132 | 37 days | Long Terpin turn (every 132 turns) |
+| Fatunik regular month | T1 M2 | 30 days | Any non-festival Fatunik month |
+
+### SPEC-019 Test cases
+
+#### TC-019-01 — Fatunik festival-month overflow is rejected
+
+1. On `/moons`, enter Fatunik Year `1`, Month `1`, Day `10` (the standard
+   festival has only 5 days) and submit.
+2. **Expected:** A clear error message appears naming the month, the turn,
+   and the valid day range (1-5). No moon table renders, and no date
+   silently resolves into Month 2.
+
+**Pass / Fail:** Pass
+
+#### TC-019-02 — Fatunik festival-month boundary day is accepted
+
+1. On `/moons`, enter Fatunik Year `1`, Month `1`, Day `5` (the last day of
+   the standard festival) and submit.
+2. **Expected:** The page resolves normally — moon positions render and the
+   Fatunik date shown is T1 M1 D5, with no error.
+
+**Pass / Fail:** Pass
+
+#### TC-019-03 — Fatunik leap-turn festival boundary
+
+1. On `/moons`, enter Fatunik Year `4`, Month `1`, Day `6` (the last day of
+   the leap festival) and submit. **Expected:** accepted, no error.
+2. Change Day to `7` and resubmit. **Expected:** rejected, with the error
+   naming month 1, turn 4, and the valid maximum (1-6).
+
+**Pass / Fail:** Pass
+
+#### TC-019-04 — Terpin long-turn festival boundary
+
+1. On `/moons`, enter Terpin Year `132`, Month `1`, Day `37` (the last day of
+   the long-turn festival) and submit. **Expected:** accepted, no error.
+2. Change Day to `38` and resubmit. **Expected:** rejected, with the error
+   naming turn 132 and the valid maximum (1-37).
+
+**Pass / Fail:** Pass
+
+#### TC-019-05 — Regular-month overflow is rejected
+
+1. On `/moons`, enter Fatunik Year `1`, Month `2`, Day `31` (regular months
+   are 30 days) and submit.
+2. **Expected:** A clear error message appears; no date silently resolves
+   into Month 3.
+
+**Pass / Fail:** Pass
+
+#### TC-019-06 — Ephemeris start-date form also validates
+
+1. On `/ephemeris`, select the Fatunik Date start input, enter Year `1`,
+   Month `1`, Day `10`, set Duration to `1` day and Step to `5` minutes, and
+   press Generate.
+2. **Expected:** The same in-page error appears instead of a generated
+   preview or download link.
+
+**Pass / Fail:** Pass
+
+### SPEC-019 Results — 2026-06-19
+
+Tested on `sask-dev` via SSH tunnel. All cases pass.
+
+| TC | Result | Notes |
+|---|---|---|
+| TC-019-01 | PASS | Fatunik T1 M1 D10 rejected; error names month/turn/max (1-5) |
+| TC-019-02 | PASS | Fatunik T1 M1 D5 accepted; moon table renders |
+| TC-019-03 | PASS | Fatunik T4 M1 D6 accepted; D7 rejected (max 1-6) |
+| TC-019-04 | PASS | Terpin T132 M1 D37 accepted; D38 rejected (max 1-37) |
+| TC-019-05 | PASS | Fatunik T1 M2 D31 rejected; no roll into Month 3 |
+| TC-019-06 | PASS | `/ephemeris` start resolver renders the same in-page error |
+
+Bug found and fixed during TC-019-04: the `terpin_day` and `fatunik_month`
+HTML5 `min`/`max` attributes on `/moons`, `/planets`, `/sky`, and
+`/ephemeris` predated SPEC-019 and were too tight, blocking valid input
+(e.g. Terpin day 37) before it reached the server. Normalised to
+`month max="13"`, `fatunik_day max="30"`, `terpin_day max="37"` across all
+four templates; retested and passed.
+
+### SPEC-019 Teardown
+
+Stop the Flask server with `Ctrl+C` in the VM terminal. Close the SSH tunnel
+terminal.
