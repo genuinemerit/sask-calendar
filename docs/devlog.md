@@ -1,5 +1,49 @@
 # Dev log
 
+## 2026-06-22 — SPEC-022: droplet provisioned for real, sask_ed25519 passphrase removed
+
+**`tofu apply` run for real** (`tools/provision.sh -y`) after a clean local
+`tofu fmt`/`validate` and a read-only `tofu plan` review. All 7 resources
+created in ~60s total: `digitalocean_ssh_key`, `digitalocean_droplet`
+(`sask-droplet`, id `579490216`, `fra1`, `s-1vcpu-1gb`), `digitalocean_reserved_ip`
+(`129.212.194.54`) + its assignment, `digitalocean_record`
+(`sask.davidstitt.net` -> the reserved IP), `digitalocean_firewall`
+(`sask-firewall`), and the generated `local_file` SSH config snippet. DNS
+resolution and the DO console both confirm the A record. A second `tofu plan`
+against the converged droplet reports "No changes" - the idempotency bar
+holds.
+
+**Found and fixed: `sask_ed25519` was passphrase-protected**, which silently
+broke non-interactive SSH (the server accepted the public key, but the
+client had no way to sign without the passphrase - classic "Server accepts
+key" immediately followed by "Permission denied" in `ssh -vvv` output, with
+no signing step in between). Root-caused via `ssh-keygen -y -f
+~/.ssh/sask_ed25519 -P ''`, which fails cleanly with "incorrect passphrase"
+without ever exposing key material. Decided with the developer to strip the
+passphrase entirely (`ssh-keygen -p`, old passphrase entered once
+interactively, new passphrase left blank) rather than set up a
+session-persistent `ssh-agent` (the sibling project's approach) - this key
+has no other use, and a passphrase-free deploy key is what makes
+REQ-OPS-013's single-mainline `redeploy` actually unattended. Re-verified the
+fix non-destructively (empty-passphrase decrypt now succeeds, still matches
+the registered public key) before retrying; `ssh -o User=root sask-droplet`
+now succeeds (Ubuntu 24.04.3 LTS confirmed).
+
+**Unrelated cleanup, found during a DO API sanity check:** an old, unattached
+firewall (`bow-spt-firewall`) from an unrelated, years-old project was
+flagged and, on the developer's confirmation that it was unused, deleted
+(`DELETE /v2/firewalls/{id}` -> HTTP 204). Only `sask-firewall` remains on
+the account.
+
+Evidence recorded in `tests/results/SPEC-022.md`. SPEC-022's
+destroy/recreate-cycle acceptance check is deferred to SPEC-024's Layer 4,
+where it's exercised together with SPEC-023's Ansible re-convergence rather
+than bare Tofu alone.
+
+**Next:** draft SPEC-023 (Ansible: base/runtime/caddy/app roles), starting
+with the root-then-`dave` bootstrap sequencing already noted in
+`infra/tofu/ssh-config.tf`.
+
 ## 2026-06-22 — DO deploy pre-flight: review and credentials check
 
 **Design review.** Read `analysis/*`, `design/decisions/dd-0014-deploy.toml`,
