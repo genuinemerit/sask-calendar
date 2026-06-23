@@ -57,12 +57,33 @@ decision, not implemented here; SPEC-025 is measurement-only by design
 (its own out-of-scope line rules out implementing a cache or resizing in
 this pass).
 
-**Next:** present these results and the rubric reading to Dave for
-review. Flip DD-0015/REQ-OPS-016/SPEC-025 to "accepted" (the *procedure*
-is what's being accepted - it ran cleanly, repeatably, non-destructively,
-and produced a clear, evidenced answer) only after Dave confirms; open a
-follow-up decision doc for the resize/cache/accept choice if and when
-Dave wants to pursue one.
+**Root cause of the per-core gap, confirmed empirically per Dave's direct
+question** (is it the dev VM's 4 vCPUs? NixOS vs Ubuntu? something else?):
+a trivial, stdlib-only, single-threaded Python loop with no app code at
+all showed a **2.93x** gap between `sask-dev` (3.70s) and `sask-droplet`
+(10.86s) - matching the 2.3x-2.9x engine-level gap almost exactly. That
+rules out the obvious candidates: not the 4 vCPUs (the workload and the
+probe are both single-threaded; `vmstat` on the droplet showed 0% steal
+time during the test, so it isn't even active contention right now), and
+not NixOS vs Ubuntu (same kernel family, same glibc, same CPython
+generation - 3.12.13 vs 3.12.3 is a patch difference only, no JIT either
+side). `sask-dev` is a KVM VM with access to Dave's real 11th-Gen Intel
+i7-1165G7; `sask-droplet` is DigitalOcean's `s-1vcpu-1gb` *shared*-vCPU
+Basic tier, whose model DigitalOcean reports only as the generic
+`DO-Regular` (unlike the `c-` CPU-Optimized dedicated line) - a throttled
+fractional core, intentionally slower per-core by the design of the
+$6/mo tier. Not a deployment bug, not an algorithmic regression -
+genuinely the hardware being paid for. Dave's read: "kind of like
+deploying to an old Raspberry Pi found at the bottom of the closet."
+
+**Next:** resolved the same day. Dave reviewed the results and chose
+accept-and-document over a CPU-Optimized resize ($42/mo minimum, and only
+the 2nd vCPU that DD-0015's own guard says wouldn't help anyway) or a
+regenerable cache (real engineering work for a query space broader than
+the one worst-case grid), and declined another design-doc round for it.
+Committed and pushed as `f846f81`. DD-0015/REQ-OPS-016/SPEC-025 left as
+"proposed" pending the still-unscoped, not-yet-requested
+export-time-estimate feature and REQ-OPS-010 budget-text revision.
 
 ## 2026-06-22 — Runbook added; reboot-recovery confirmed for real
 
