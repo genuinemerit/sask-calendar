@@ -42,10 +42,12 @@ fi
 ASSET_URL="$BASE_URL/asset/image/splash.bg"
 EXPECTED_ASSET_CONTENT_TYPE="image/webp"
 
-if ! response="$(curl -sS -w '\n%{http_code}' "$ASSET_URL")"; then
+dummy_body=$(mktemp)
+if ! code="$(curl -sS -o "$dummy_body" -w '%{http_code}' "$ASSET_URL")"; then
+    rm -f "$dummy_body"
     fail "Request failed for $ASSET_URL"
 fi
-code="$(tail -n1 <<<"$response")"
+rm -f "$dummy_body"
 if [[ "$code" == "200" ]]; then
     pass "$ASSET_URL returns 200"
 else

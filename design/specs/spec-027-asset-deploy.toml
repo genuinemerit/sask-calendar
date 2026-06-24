@@ -1,6 +1,6 @@
 id="SPEC-027"
 title="Deployed asset sync and rate-limited delivery"
-status="proposed"
+status="accepted"
 
 [implements]
 requirements=["REQ-OPS-017"]

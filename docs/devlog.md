@@ -1,5 +1,43 @@
 # Dev log
 
+## 2026-06-24 — SPEC-027 accepted: redeployed and verified live
+
+**REQ-OPS-017/SPEC-027 redeployed against the real droplet and accepted.**
+`bash tools/deploy.sh` shipped the new Ansible sync task and Caddy
+rate-limit zone: `failed=0`, both new tasks fired (`Ensure the assets/
+parent directory exists`, `Sync the versioned assets/ data tree`), both
+`runtime`/`caddy` restart handlers fired, no crash on restart — confirming
+the catalog config and its payload files land together, the exact failure
+mode this spec exists to prevent. A second consecutive deploy reported
+`changed=0`. Checked directly on the droplet: exactly the 7 real catalog
+files under `/opt/sask/assets/v0/`, `assets/local/` correctly absent, and
+the rendered Caddyfile carries the new `zone asset` block (20 events/1m)
+exactly as designed. Layer 2 (`tools/acceptance-test.sh`) and Layer 3
+(`tests/acceptance/`, including a new sha256 byte-identity check) both
+green against `sask.davidstitt.net`.
+
+**Delete-semantics verified with a disposable probe asset**, not a real
+catalog entry — added a throwaway file + catalog entry, deployed,
+confirmed live; removed both, deployed again, confirmed gone (404); final
+no-op deploy reconverged at `changed=0`. Avoided ever letting the live
+catalog reference a missing file mid-test, which would have crashed every
+gunicorn worker on restart.
+
+**Found and fixed a small real bug while running the suite for real:**
+`tools/acceptance-test.sh`'s new asset checks captured the binary response
+body into a shell variable just to discard it, producing a harmless but
+noisy "ignored null byte in input" warning on every run. Fixed to write
+the body to a temp file and read only the status code.
+
+**The one `[manual]` item — rate-limit trip — confirmed by Dave directly:**
+multiple rapid refreshes of `/asset/image/splash.bg` produced a 429,
+confirming the zone is actually enforced, not just present in the
+rendered config. Full results in `tests/results/SPEC-027.md`.
+
+**Next:** nothing queued. The asset-retrieval effort (DD-0016 through
+SPEC-027) is fully closed out — design, implementation, UAT, deploy, and
+acceptance all done.
+
 ## 2026-06-24 — SPEC-026 accepted; SPEC-027 awaits redeploy
 
 **DD-0016/REQ-FUN-013/SPEC-026 implemented, UAT passed, and accepted.**
