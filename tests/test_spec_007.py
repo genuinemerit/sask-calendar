@@ -26,7 +26,7 @@ from pathlib import Path
 
 import pytest
 
-from sask.bodies import (
+from sask.calendar.bodies import (
     ECLIPSE_LAT_TOL_DEG,
     ECLIPSE_SYZYGY_TOL,
     VISIBILITY_HIGH,
@@ -48,7 +48,7 @@ from sask.config_loader import BodyConfig, load_config
 CONFIG = load_config(Path(__file__).parent.parent / "config")
 TC = CONFIG.time_constants
 GAVOR = CONFIG.gavor
-BODIES_SRC = Path(__file__).parent.parent / "src" / "sask" / "bodies.py"
+BODIES_SRC = Path(__file__).parent.parent / "src" / "sask" / "calendar" / "bodies.py"
 
 PPD = TC.pulses_per_day
 AYP = TC.astro_year_pulses

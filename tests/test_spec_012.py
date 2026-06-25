@@ -20,7 +20,7 @@ from pathlib import Path
 import pytest
 
 from sask.config_loader import load_config
-from sask.lunar import (
+from sask.calendar.lunar import (
     _ay_days,
     _epoch_pulse,
     _round_turns_for,
@@ -375,7 +375,7 @@ def test_cofullness_event_is_frozen_dataclass():
 
 def test_lunar_module_does_not_use_civil_leap_arithmetic():
     """Lunar date computation uses only epoch anchors, not civil-calendar structure."""
-    source = (PROJECT_ROOT / "src/sask/lunar.py").read_text(encoding="utf-8")
+    source = (PROJECT_ROOT / "src/sask/calendar/lunar.py").read_text(encoding="utf-8")
     assert "_fatunik_is_leap" not in source
     assert "_fatunik_days_before_year" not in source
     assert "_terpin_year_of_day" not in source
@@ -393,7 +393,7 @@ def test_same_pulse_same_lunar_date():
 
 
 def test_lunar_module_has_no_flask_import():
-    path = PROJECT_ROOT / "src/sask/lunar.py"
+    path = PROJECT_ROOT / "src/sask/calendar/lunar.py"
     tree = ast.parse(path.read_text(encoding="utf-8"))
     flask_imports = [
         node

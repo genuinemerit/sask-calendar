@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from .config_loader import AppConfig, CalendarLoreConfig, LoreAge
-from .lunar import _synodic_period_days, get_lunar_date
-from .message import CalendarDate, LunarDate
-from .pulse import astro_to_fatunik, astro_to_terpin
+from sask.calendar.lunar import _synodic_period_days, get_lunar_date
+from sask.calendar.pulse import astro_to_fatunik, astro_to_terpin
+from sask.config_loader import AppConfig, CalendarLoreConfig, LoreAge
+from sask.message import CalendarDate, LunarDate
 
 
 def _ordinal(n: int) -> str:

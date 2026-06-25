@@ -25,9 +25,9 @@ from pathlib import Path
 
 import pytest
 
-from sask.bodies import all_body_states
+from sask.calendar.bodies import all_body_states
 from sask.config_loader import load_config
-from sask.sky import (
+from sask.calendar.sky import (
     _ecliptic_to_equatorial,
     _horizontal,
     _rise_transit_set,
@@ -39,7 +39,7 @@ from sask.sky import (
 CONFIG = load_config(Path(__file__).parent.parent / "config")
 TC = CONFIG.time_constants
 GAVOR = CONFIG.gavor
-SKY_SRC = Path(__file__).parent.parent / "src" / "sask" / "sky.py"
+SKY_SRC = Path(__file__).parent.parent / "src" / "sask" / "calendar" / "sky.py"
 
 PPD = TC.pulses_per_day
 AYP = TC.astro_year_pulses

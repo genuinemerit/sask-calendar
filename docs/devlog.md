@@ -1,5 +1,40 @@
 # Dev log
 
+## 2026-06-25 — DD-0017/SPEC-028 B2: calendar bulk move
+
+**The ten calendar modules** (`pulse`, `season`, `bodies`, `sky`, `scene`,
+`lunar`, `stars`, `apparitions`, `ephemeris`, `lore`) **moved into
+`src/sask/calendar/`** (`git mv`, history preserved), empty
+`calendar/__init__.py`, no re-exports. Every module's own imports
+normalized to absolute form: siblings as `sask.calendar.<mod>`, spine as
+`sask.message`/`sask.config_loader` (`bodies.py`/`sky.py` already used
+absolute spine imports and needed no change there).
+
+**Fixed every consumer import site**, found by direct repo-wide grep
+rather than trusting the spec's literal "src/ and tests/" pattern alone:
+`src/sask/web/routes.py` (8 lines), 15 `tests/test_spec_*.py` files, and —
+the one real gap beyond the spec's stated scope — `tools/perf_engine.py`
+and `tests/perf/test_engine_benchmarks.py` (7 lines each), which live
+outside `src/`/`tests/`'s literal grep pattern and outside the default
+pytest run (`tests/perf` is in `norecursedirs`), so they'd have broken
+silently. Also fixed a live, actionable example in
+`docs/user_testing.md`'s REPL walkthrough (`sask.pulse`/`sask.season`
+imports) that would otherwise have stopped working for the next person
+who followed it.
+
+**Relocated every hardcoded test-file path reference** to the ten moved
+modules — broader than "layer-purity": includes the calendar-independence
+and no-civil-arithmetic content checks on `apparitions.py`, `stars.py`,
+`scene.py` that hardcode the same literal source path for a different
+purpose. `ephemeris.py` and `lore.py` have no such test anywhere in the
+suite — a pre-existing gap, not something this phase introduces; noted
+rather than papered over with a new test (same test count throughout).
+
+No behavior change. Full unit suite still 626 passed; full perf benchmark
+suite (20 benchmarks, now importing through `sask.calendar.*`) still
+green — the real regression check for the `perf_engine.py` rewrite, since
+the default suite wouldn't have caught it. Pre-commit suite clean.
+
 ## 2026-06-25 — DD-0017/SPEC-028 B1: asset canary move
 
 **`src/sask/asset.py` -> `src/sask/asset/retrieval.py`** (`git mv`, history

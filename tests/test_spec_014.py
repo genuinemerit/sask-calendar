@@ -23,7 +23,7 @@ from pathlib import Path
 import pytest
 
 from sask.config_loader import load_config
-from sask.lunar import get_cofullness
+from sask.calendar.lunar import get_cofullness
 from sask.web import create_app
 
 REAL_CONFIG = Path(__file__).parent.parent / "config"
@@ -198,7 +198,7 @@ def test_sky_image_prompt_contains_style_text(client):
 
 
 def test_sky_accepts_fatunik_date_input(client):
-    from sask.pulse import astro_to_fatunik
+    from sask.calendar.pulse import astro_to_fatunik
 
     fd = astro_to_fatunik(STORY_PULSE, CONFIG)
     url = f"/sky?fatunik_year={fd.year}&fatunik_month={fd.month}&fatunik_day={fd.day}"
@@ -209,7 +209,7 @@ def test_sky_accepts_fatunik_date_input(client):
 
 
 def test_sky_accepts_terpin_date_input(client):
-    from sask.pulse import astro_to_terpin
+    from sask.calendar.pulse import astro_to_terpin
 
     td = astro_to_terpin(STORY_PULSE, CONFIG)
     url = f"/sky?terpin_year={td.year}&terpin_month={td.month}&terpin_day={td.day}"
@@ -221,7 +221,7 @@ def test_sky_accepts_terpin_date_input(client):
 
 def test_sky_fatunik_date_input_returns_day_start_time(client):
     """Entering a Fatunik date should show 06:00:00 (Fatunik calendar day start)."""
-    from sask.pulse import astro_to_fatunik
+    from sask.calendar.pulse import astro_to_fatunik
 
     fd = astro_to_fatunik(STORY_PULSE, CONFIG)
     url = f"/sky?fatunik_year={fd.year}&fatunik_month={fd.month}&fatunik_day={fd.day}"

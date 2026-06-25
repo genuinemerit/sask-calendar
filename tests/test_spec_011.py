@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pytest
 
-from sask.apparitions import (
+from sask.calendar.apparitions import (
     _comet_visibility,
     _kanka_rotation_pulses,
     _seeded_float,
@@ -285,7 +285,9 @@ def test_spark_glimmer_rate_matches_config():
 
 
 def test_apparitions_module_does_not_reference_civil_calendars():
-    source = (PROJECT_ROOT / "src/sask/apparitions.py").read_text(encoding="utf-8")
+    source = (PROJECT_ROOT / "src/sask/calendar/apparitions.py").read_text(
+        encoding="utf-8"
+    )
     assert "fatunik" not in source.lower()
     assert "terpin" not in source.lower()
 
@@ -338,7 +340,7 @@ def test_comet_ids_in_context_match_config():
 
 
 def test_apparitions_module_has_no_flask_import():
-    path = PROJECT_ROOT / "src/sask/apparitions.py"
+    path = PROJECT_ROOT / "src/sask/calendar/apparitions.py"
     tree = ast.parse(path.read_text(encoding="utf-8"))
     flask_imports = [
         node
@@ -356,7 +358,9 @@ def test_apparitions_module_has_no_flask_import():
 
 def test_apparitions_uses_no_global_random():
     """Source contains no calls to the global `random` module."""
-    source = (PROJECT_ROOT / "src/sask/apparitions.py").read_text(encoding="utf-8")
+    source = (PROJECT_ROOT / "src/sask/calendar/apparitions.py").read_text(
+        encoding="utf-8"
+    )
     assert "random.seed" not in source
     assert "random.random(" not in source
     assert "random.uniform" not in source

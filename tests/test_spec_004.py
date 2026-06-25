@@ -19,8 +19,8 @@ import pytest
 
 from sask.config_loader import load_config
 from sask.message import CalendarDate
-from sask.pulse import terpin_to_pulse
-from sask.season import season_info
+from sask.calendar.pulse import terpin_to_pulse
+from sask.calendar.season import season_info
 
 CONFIG = load_config(Path(__file__).parent.parent / "config")
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -170,7 +170,7 @@ def test_terpin_new_year_stays_in_late_stillness():
 
 
 def test_season_module_has_no_flask_import():
-    path = PROJECT_ROOT / "src/sask/season.py"
+    path = PROJECT_ROOT / "src/sask/calendar/season.py"
     tree = ast.parse(path.read_text(encoding="utf-8"))
     flask_imports = [
         node

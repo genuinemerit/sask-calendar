@@ -46,12 +46,12 @@ PLANET_NAMES = [
 ]
 
 ENGINE_MODULES = [
-    "src/sask/pulse.py",
+    "src/sask/calendar/pulse.py",
     "src/sask/message.py",
     "src/sask/config_loader.py",
-    "src/sask/season.py",
-    "src/sask/bodies.py",
-    "src/sask/sky.py",
+    "src/sask/calendar/season.py",
+    "src/sask/calendar/bodies.py",
+    "src/sask/calendar/sky.py",
 ]
 
 

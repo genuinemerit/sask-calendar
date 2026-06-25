@@ -21,7 +21,7 @@ import pytest
 
 from sask.config_loader import load_config
 from sask.message import StarContext, validate
-from sask.stars import (
+from sask.calendar.stars import (
     HOUSE_ARC_OFFSET,
     HOUSE_ARC_WIDTH,
     HOUSE_COUNT,
@@ -173,7 +173,7 @@ def test_same_orbital_position_gives_same_context():
 
 
 def test_stars_module_does_not_reference_civil_calendars():
-    source = (PROJECT_ROOT / "src/sask/stars.py").read_text(encoding="utf-8")
+    source = (PROJECT_ROOT / "src/sask/calendar/stars.py").read_text(encoding="utf-8")
     assert "fatunik" not in source.lower()
     assert "terpin" not in source.lower()
 
@@ -211,7 +211,7 @@ def test_all_visible_star_ids_come_from_config():
 
 
 def test_stars_module_has_no_flask_import():
-    path = PROJECT_ROOT / "src/sask/stars.py"
+    path = PROJECT_ROOT / "src/sask/calendar/stars.py"
     tree = ast.parse(path.read_text(encoding="utf-8"))
     flask_imports = [
         node

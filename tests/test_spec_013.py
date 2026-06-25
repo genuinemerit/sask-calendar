@@ -17,9 +17,9 @@ from pathlib import Path
 import pytest
 
 from sask.config_loader import load_config
-from sask.lunar import get_cofullness
+from sask.calendar.lunar import get_cofullness
 from sask.message import SkyScene, validate
-from sask.scene import get_sky_scene, render_image_prompt, render_night_summary
+from sask.calendar.scene import get_sky_scene, render_image_prompt, render_night_summary
 
 CONFIG = load_config(Path(__file__).parent.parent / "config")
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -82,7 +82,7 @@ def test_scene_has_active_house():
 
 
 def test_scene_season_matches_spec004():
-    from sask.season import season_info
+    from sask.calendar.season import season_info
 
     scene = get_sky_scene(_EARLY_PULSE, CONFIG)
     si = season_info(_EARLY_PULSE, CONFIG)
@@ -205,13 +205,13 @@ def test_image_prompt_explicit_style_id():
 
 
 def test_no_network_calls_in_scene_module():
-    source = (PROJECT_ROOT / "src/sask/scene.py").read_text(encoding="utf-8")
+    source = (PROJECT_ROOT / "src/sask/calendar/scene.py").read_text(encoding="utf-8")
     for bad in ("urllib", "requests", "httpx", "aiohttp", "socket"):
         assert bad not in source, f"Found {bad!r} in scene.py"
 
 
 def test_scene_module_has_no_flask_import():
-    path = PROJECT_ROOT / "src/sask/scene.py"
+    path = PROJECT_ROOT / "src/sask/calendar/scene.py"
     tree = ast.parse(path.read_text(encoding="utf-8"))
     flask_imports = [
         node

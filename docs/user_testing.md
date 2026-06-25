@@ -158,12 +158,12 @@ PYTHONPATH=src .venv/bin/python3
 from pathlib import Path
 from sask.config_loader import load_config
 from sask.message import CalendarDate
-from sask.pulse import (
+from sask.calendar.pulse import (
     astro_to_fatunik, fatunik_to_pulse, fatunik_turns_to_pulse_range,
     astro_to_terpin, terpin_to_pulse,
     terpin_shell_of_turn, terpin_turn_within_shell,
 )
-from sask.season import season_info
+from sask.calendar.season import season_info
 
 cfg = load_config(Path("config"))
 SNP = cfg.timeline.story_now_pulse   # 104548096103

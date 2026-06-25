@@ -19,12 +19,12 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 
-from .bodies import all_body_states
-from .config_loader import AppConfig
-from .message import BodyState, SkyPosition, SkyScene
-from .scene import get_sky_scene, render_night_summary
-from .season import season_info
-from .sky import all_sky_positions
+from sask.calendar.bodies import all_body_states
+from sask.calendar.scene import get_sky_scene, render_night_summary
+from sask.calendar.season import season_info
+from sask.calendar.sky import all_sky_positions
+from sask.config_loader import AppConfig
+from sask.message import BodyState, SkyPosition, SkyScene
 
 
 # ── Internal series data structures ───────────────────────────────────────────

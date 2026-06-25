@@ -23,9 +23,9 @@ import functools
 import math
 from collections.abc import Iterator
 
-from .config_loader import AppConfig, BodyConfig
-from .message import CalendarDate, CofullnessEvent, LunarDate
-from .pulse import astro_to_fatunik, astro_to_terpin
+from sask.calendar.pulse import astro_to_fatunik, astro_to_terpin
+from sask.config_loader import AppConfig, BodyConfig
+from sask.message import CalendarDate, CofullnessEvent, LunarDate
 
 DEFAULT_COFULLNESS_HORIZON_DAYS = 5 * 365
 

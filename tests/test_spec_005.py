@@ -122,7 +122,7 @@ def _flask_imports_in(path: Path) -> list[str]:
 @pytest.mark.parametrize(
     "rel_path",
     [
-        "src/sask/pulse.py",
+        "src/sask/calendar/pulse.py",
         "src/sask/message.py",
         "src/sask/config_loader.py",
     ],

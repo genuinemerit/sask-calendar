@@ -17,11 +17,18 @@ render_image_prompt(scene, config, style_id=None):
 
 from __future__ import annotations
 
-from .apparitions import get_apparitions
-from .bodies import all_body_states
-from .config_loader import AppConfig
-from .lunar import DEFAULT_COFULLNESS_HORIZON_DAYS, get_cofullness, next_cofullness
-from .message import (
+from sask.calendar.apparitions import get_apparitions
+from sask.calendar.bodies import all_body_states
+from sask.calendar.lunar import (
+    DEFAULT_COFULLNESS_HORIZON_DAYS,
+    get_cofullness,
+    next_cofullness,
+)
+from sask.calendar.season import season_info
+from sask.calendar.sky import all_sky_positions
+from sask.calendar.stars import get_star_context
+from sask.config_loader import AppConfig
+from sask.message import (
     BodyInScene,
     BodyState,
     CofullnessTonightRef,
@@ -31,9 +38,6 @@ from .message import (
     SkyScene,
     StarInScene,
 )
-from .season import season_info
-from .sky import all_sky_positions
-from .stars import get_star_context
 
 _COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
 

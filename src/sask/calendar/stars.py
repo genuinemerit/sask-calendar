@@ -23,10 +23,10 @@ from __future__ import annotations
 
 import math
 
-from .config_loader import AppConfig, FixedStarConfig, HouseConfig
-from .message import FixedStarInfo, HouseInfo, StarContext
-from .pulse import orbital_position as _orbital_position
-from .season import season_info
+from sask.calendar.pulse import orbital_position as _orbital_position
+from sask.calendar.season import season_info
+from sask.config_loader import AppConfig, FixedStarConfig, HouseConfig
+from sask.message import FixedStarInfo, HouseInfo, StarContext
 
 HOUSE_COUNT = 12
 HOUSE_ARC_OFFSET = 0.125  # gavor_frac where order=1 arc starts

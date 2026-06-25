@@ -17,7 +17,7 @@ from pathlib import Path
 import pytest
 
 from sask.config_loader import load_config
-from sask.ephemeris import (
+from sask.calendar.ephemeris import (
     get_sky_series,
     render_kinematic_json,
     render_scribal_json,

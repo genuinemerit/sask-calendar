@@ -19,7 +19,7 @@ import pytest
 
 from sask.config_loader import ConfigError, load_config
 from sask.message import CalendarDate, PulseInfo, validate
-from sask.pulse import (
+from sask.calendar.pulse import (
     astro_day,
     civil_day,
     day_pulse_offset,

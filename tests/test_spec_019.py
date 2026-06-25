@@ -24,7 +24,7 @@ import pytest
 
 from sask.config_loader import load_config
 from sask.message import CalendarDate
-from sask.pulse import (
+from sask.calendar.pulse import (
     CalendarRangeError,
     fatunik_month_length,
     fatunik_to_pulse,

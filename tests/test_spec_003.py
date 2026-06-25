@@ -19,7 +19,7 @@ import pytest
 
 from sask.config_loader import load_config
 from sask.message import CalendarDate
-from sask.pulse import (
+from sask.calendar.pulse import (
     _fatunik_is_leap,
     astro_to_fatunik,
     astro_to_terpin,

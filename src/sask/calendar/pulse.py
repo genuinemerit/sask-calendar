@@ -10,14 +10,14 @@ All functions are pure and stateless.
 
 from __future__ import annotations
 
-from .config_loader import (
+from sask.config_loader import (
     AppConfig,
     FatunikConfig,
     FatunikLeap,
     TerpinConfig,
     TerpinLeap,
 )
-from .message import CalendarDate, PulseInfo
+from sask.message import CalendarDate, PulseInfo
 
 
 class CalendarRangeError(ValueError):

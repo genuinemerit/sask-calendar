@@ -26,7 +26,7 @@ from pathlib import Path
 import pytest
 
 from sask.config_loader import load_config
-from sask.lore import apply_lore_overlay, render_lore_date, render_lore_time
+from sask.calendar.lore import apply_lore_overlay, render_lore_date, render_lore_time
 from sask.message import CalendarDate, LunarDate
 
 REAL_CONFIG = Path(__file__).parent.parent / "config"

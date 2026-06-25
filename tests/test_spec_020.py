@@ -13,8 +13,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from sask.config_loader import load_config
-from sask.lunar import get_cofullness, next_cofullness
-from sask.scene import get_sky_scene
+from sask.calendar.lunar import get_cofullness, next_cofullness
+from sask.calendar.scene import get_sky_scene
 
 CONFIG = load_config(Path(__file__).parent.parent / "config")
 PPD = CONFIG.time_constants.pulses_per_day

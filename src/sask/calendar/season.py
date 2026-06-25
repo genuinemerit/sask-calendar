@@ -6,9 +6,9 @@ civil calendar leap rules never affect the result.
 
 from __future__ import annotations
 
-from .config_loader import AppConfig, EventConfig, SeasonConfig
-from .message import SeasonInfo
-from .pulse import orbital_position as _orbital_position
+from sask.calendar.pulse import orbital_position as _orbital_position
+from sask.config_loader import AppConfig, EventConfig, SeasonConfig
+from sask.message import SeasonInfo
 
 
 def _angular_distance(pos: float, event_pos: float) -> float:

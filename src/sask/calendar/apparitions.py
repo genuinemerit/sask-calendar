@@ -17,8 +17,8 @@ import hashlib
 import math
 import struct
 
-from .config_loader import AppConfig, CometConfig, SparkConfig
-from .message import ApparitionContext, CometInfo, SparkInfo
+from sask.config_loader import AppConfig, CometConfig, SparkConfig
+from sask.message import ApparitionContext, CometInfo, SparkInfo
 
 
 def _seeded_float(seed: int, salt: int = 0) -> float:
