@@ -23,6 +23,24 @@ fi
 
 bash tools/ops/export-requirements.sh
 
+# Wait for the droplet's SSH daemon to come up before Ansible connects.
+# A freshly created or recreated droplet can take ~60 s to be ready; not
+# waiting here was the root cause of the SSH-readiness race flagged in the
+# SPEC-029 addendum. Succeeds immediately when the droplet is already running.
+_SSH_READY=false
+for _I in $(seq 1 24); do
+    if ssh -o BatchMode=yes -o ConnectTimeout=5 -o User=root sask-droplet true 2>/dev/null; then
+        _SSH_READY=true
+        break
+    fi
+    printf '[INFO] SSH not ready yet (%d/24); retrying in 5 s...\n' "$_I"
+    sleep 5
+done
+if [[ "$_SSH_READY" != true ]]; then
+    printf '[FAIL] Droplet SSH did not become reachable within 2 minutes.\n' >&2
+    exit 1
+fi
+
 # cd into ansible/ rather than passing -i/--ANSIBLE_CONFIG explicitly:
 # Ansible only auto-loads ansible.cfg (and its relative inventory= path)
 # from the current directory, not from the playbook's own location.
