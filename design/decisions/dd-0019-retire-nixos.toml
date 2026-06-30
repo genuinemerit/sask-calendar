@@ -1,0 +1,152 @@
+id     = "DD-0019"
+title  = "Retire NixOS as dev-host requirement; minimal verified host contract"
+status = "accepted"
+date   = "2026-06-30"
+
+[context]
+summary = """
+sask was developed on a NixOS VM (sask-dev) whose configuration.nix declared
+the entire environment, including the Python interpreter (python312). NixOS
+was a deliberate learning vehicle; that value is banked. It no longer makes the
+solo hobby workflow more productive than a standard Poetry project would, and
+it imposes an ongoing requirement to manage a VM and ssh into it. The decision
+is to retire NixOS as a REQUIREMENT (it remains an option) and run sask as a
+conventional Poetry project on a stock Ubuntu LTS foundation, with
+reproducibility provided by a minimal, documented, empirically-VERIFIED contract
+with the host rather than by an environment-owning tool.
+"""
+
+scope_note = """
+This concerns the DEVELOPMENT environment only. The production droplet
+(sask-droplet) is already stock Ubuntu, provisioned by the OpenTofu+Ansible+bash
+harness (DD-0014); it is not NixOS and is not changed by this decision. The
+application code, tests, message units, config schemas, and deploy harness are
+unchanged. What is retired is the NixOS-specific dev layer (flake.nix,
+configuration.nix as a requirement, the NixOS bits of the dev-setup docs).
+"""
+
+new_host = """
+A new Ubuntu 26.04 LTS VM has been provisioned (replacing the NixOS sask-dev
+VM), with password-less SSH established between the user's machines. The
+project will be set up on this VM as a regular Poetry project. The VM remains
+under the same virt-manager/QEMU host; developing directly on the Ubuntu laptop
+host also becomes possible since no VM is strictly required.
+"""
+
+[decision]
+summary = """
+Reproducibility is provided by a three-part contract, written down and verified
+empirically, instead of by NixOS owning the environment: (1) an explicitly
+pinned Python version, (2) the Poetry lockfile, and (3) a short, explicit,
+empirically-derived list of system-level prerequisites. Docker is explicitly
+declined.
+"""
+
+python_pinning = """
+Python is pinned to 3.12, provided by pyenv, NOT by the system interpreter.
+
+Rationale - this is the load-bearing decision:
+- sask was built, tested (~600+ tests), and deployed against Python 3.12 (the
+  NixOS config used python312). 3.12 is the PROVEN interpreter.
+- Ubuntu 26.04 LTS ships Python 3.14 as its system python3. Using "system
+  Python as-is" would therefore silently jump sask from 3.12 to 3.14 - changing
+  two variables (environment AND interpreter) at once, which defeats clean
+  bisection if anything breaks.
+- As of 2026-06-30 the Python 3.14 readiness data shows two PRODUCTION-CRITICAL
+  dependencies not yet ready: Werkzeug (Flask's foundation) and gunicorn (the
+  production WSGI server) both report no 3.14 support. gunicorn has a documented
+  history of lagging new Python releases. Adopting 3.14 now would risk the live
+  serving stack.
+- Therefore: pin 3.12 via pyenv, which installs and selects 3.12 for this
+  project WITHOUT disturbing the system's 3.14 (used by the OS itself). The
+  divergence between system-Python (3.14) and project-Python (3.12) is exactly
+  why an explicit provider (pyenv) is needed rather than relying on the OS
+  interpreter.
+- pyproject.toml retains its python constraint (e.g. requires-python ~=3.12),
+  which is a CHECK; pyenv is the PROVIDER that satisfies it. poetry creates the
+  venv using the pyenv-provided 3.12; it does not itself install interpreters.
+
+A future, separate, deliberately-bounded project may evaluate bumping sask to a
+newer Python once Werkzeug and gunicorn ship support, with its own
+clean-environment re-test. That is the place the "newer/better libraries"
+upside is realized - later, safely, not smuggled into this port.
+"""
+
+system_prereqs = """
+The system-level prerequisite list is DERIVED, not assumed. The retired
+configuration.nix is the first source (it enumerates what NixOS was providing);
+the authoritative source is a clean-environment test on the new VM (poetry
+install + full test suite on a bare box), whose failures ARE the real prereq
+list. From configuration.nix, the predicted sask-relevant system prerequisites
+are a small set: python (via pyenv, above), poetry, git, openssl, sqlite (for
+the stdlib sqlite3 module's native lib), plus deploy-harness tools already in
+use (opentofu, openssh, curl/wget). Everything else in that configuration.nix
+(KDE Plasma, PipeWire, SDDM, Firefox/Brave, SPICE/QEMU guest agents, printing)
+is desktop/VM-guest plumbing, NOT a sask dependency; and the dev-convenience CLI
+tools there (bat, eza, fd, fzf, jq, ripgrep, lazygit, neovim, glances, httpie,
+procs, tree, claude-code, black, ruff) are the user's toolbelt, not sask runtime
+needs - several (black, ruff) likely belong in pyproject dev-deps and are
+installed by Poetry, not the system. The clean-environment test confirms the
+true minimal list; the prediction is a cross-check, not the oracle.
+"""
+
+docker_declined = """
+Docker is explicitly declined. The user dislikes it for small hobby-project
+scale, and it is unnecessary here: production reproducibility is already
+provided by the Ansible-provisioned known-Ubuntu state (DD-0014), so Docker
+would be a second, redundant reproducibility mechanism for a problem already
+solved. Consistent with the project's standing "no premature infrastructure"
+posture (cf. the broker "Just Say No").
+"""
+
+ongoing_discipline = """
+NixOS enforced the minimal-surface contract automatically; once removed, the
+user enforces it. The mitigation is to keep the clean-environment test as a
+RE-RUNNABLE artifact (the de-Nixed equivalent of "redeploy as verification"),
+run occasionally so portability stays PROVEN rather than assumed - guarding
+against silently apt-installing a system lib for a new feature and not recording
+it, which would quietly reduce "runs on any Linux-y foundation" to "runs on my
+VM."
+"""
+
+[consequences]
+positive = """
+- No VM management or ssh required as a baseline (VM remains an option);
+  matches the user's preferred traditional workflow.
+- Dev environment moves to stock Ubuntu, IMPROVING dev/prod parity (prod is
+  already Ubuntu; the prior dev-NixOS/prod-Ubuntu mismatch is removed).
+- Reproducibility becomes an explicit, verified, portable contract the user
+  understands and controls, rather than a tool-owned black box.
+- Stays on the proven Python 3.12; the live serving stack is unaffected.
+- The system-prereq surface is now KNOWN (and small), not assumed.
+"""
+
+negative_or_deferred = """
+- The user becomes the enforcer of the minimal-surface contract; mitigated by
+  the re-runnable clean-environment test.
+- pyenv is a new tool for the user to learn at a basic level (install a version,
+  set a local version); small and well-documented.
+- The "newer Python / newer libraries" upside is deferred to a future bounded
+  project, gated on Werkzeug + gunicorn 3.14 readiness.
+- flake.nix and the NixOS dev-setup docs are retired; the NixOS VM is archived,
+  not actively maintained.
+"""
+
+out_of_scope = """
+- Any change to application code, tests, message units, config schemas, or the
+  deploy harness.
+- Any change to the production droplet (already stock Ubuntu).
+- Containerization (Docker declined).
+- A Python-version bump beyond 3.12 (future, separate, gated).
+"""
+
+[links]
+depends_on = ["DD-0014"]
+relates_to = ["REQ-OPS-001"]
+implemented_by = ["REQ-OPS-018", "SPEC-031"]
+notes = """
+configuration.nix (retired NixOS dev-host config) is the cross-check source for
+the system-prereq derivation. REQ-SEC-001 (key-only SSH) is already satisfied on
+the new VM per its sshd settings. Python 3.14 readiness checked 2026-06-30:
+Werkzeug and gunicorn not ready - basis for the 3.12 pin.
+"""

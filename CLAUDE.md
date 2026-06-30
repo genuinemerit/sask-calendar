@@ -2,12 +2,12 @@
 
 ## Environment
 
-- Claude Code runs on the **Ubuntu host laptop**; the NixOS VM (`sask-dev`) is
-  the canonical dev environment, accessed via SSH.
-- A local `.venv` at the project root contains `pymarkdownlnt`, `pytest`,
-  `pytest-benchmark`, `flask`, and `gunicorn`. `ruff` and `shellcheck` are
-  provided by the NixOS system packages and nix devShell — do not use a
-  pip-installed ruff (pre-compiled binaries fail on NixOS).
+- Dev host: **Ubuntu 26.04 LTS** (replaced the retired NixOS `sask-dev` VM — DD-0019).
+- Python is pinned to **3.12** via pyenv (system python3 is 3.14 and left untouched).
+- All Python tooling is managed by **Poetry**; use `poetry run <tool>` rather than
+  activating the venv manually.
+- `shellcheck` is installed via apt (see `tools/dev/init-dev-host.sh`).
+- See `docs/dev-setup.md` for the from-scratch Ubuntu setup procedure.
 
 ## Before every commit
 
@@ -20,12 +20,12 @@ bash tools/dev/pre-commit-check.sh
 The script runs, in order:
 
 ```bash
-ruff check tools/ tests/ src/
-ruff format --check tools/ tests/ src/
-nix develop --command shellcheck -S warning tools/*/*.sh
-nix develop --command .venv/bin/pymarkdown --config .pymarkdown scan README.md CLAUDE.md docs/ tests/results/ secrets/README.md
+poetry run ruff check tools/ tests/ src/
+poetry run ruff format --check tools/ tests/ src/
+shellcheck -S warning tools/*/*.sh
+poetry run pymarkdown --config .pymarkdown scan README.md CLAUDE.md docs/ tests/results/ secrets/README.md
 python3 tools/dev/validate_specs.py
-.venv/bin/pytest tests/test_validate_specs.py -q
+poetry run pytest tests/test_validate_specs.py -q
 ```
 
 ## Design docs
@@ -33,16 +33,15 @@ python3 tools/dev/validate_specs.py
 Design documents live under `design/` as TOML. After any change to a design
 doc or its schema, run `python3 tools/dev/validate_specs.py` and confirm exit 0.
 
-## Machine / project split
+## Infrastructure split
 
-- `infra/configuration.nix` — canonical full replacement for
-  `/etc/nixos/configuration.nix` on the `sask-dev` VM. Never add project
-  tooling here; it belongs in `flake.nix`.
-- `flake.nix` — pinned devShell for the project; pinned to `nixos-25.11`.
-- `infra/tofu/` — OpenTofu IaC for the *production* DigitalOcean droplet,
-  deliberately kept separate from `infra/configuration.nix` (the dev VM's
-  config) — two different machines, two different lifecycles. See
-  `docs/deploy-runbook.md` for day-to-day deploy operations.
+- `tools/dev/init-dev-host.sh` — dev-host bootstrap (apt prereqs, pyenv, Python
+  3.12, Poetry). Safe to commit; contains no secrets. Run once on a fresh Ubuntu
+  host, then `poetry install`.
+- `infra/archive/configuration.nix` — retired NixOS dev-VM config, kept as
+  historical reference for the system-prereq derivation (DD-0019).
+- `infra/tofu/` — OpenTofu IaC for the *production* DigitalOcean droplet.
+  See `docs/deploy-runbook.md` for day-to-day deploy operations.
 
 ## Git identity
 

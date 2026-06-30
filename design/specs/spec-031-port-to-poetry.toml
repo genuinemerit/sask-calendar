@@ -1,0 +1,212 @@
+id     = "SPEC-031"
+title  = "Port sask to a standard Poetry project on Ubuntu LTS (de-NixOS)"
+status = "accepted"
+
+[implements]
+requirements = ["REQ-OPS-017"]
+decisions    = ["DD-0019"]
+notes = """
+Dev-environment port only. New host: Ubuntu 26.04 LTS VM (replacing the NixOS
+sask-dev VM), password-less SSH already established. Python pinned to 3.12 via
+pyenv (system default is 3.14, left untouched). No application, test, or deploy-
+harness changes. configuration.nix (the retired NixOS config) is available as
+the cross-check source for the system-prereq derivation.
+"""
+
+[scope]
+in = """
+Set sask up on the new Ubuntu VM as a conventional Poetry project: install
+pyenv, pin Python 3.12, poetry install, run the suite, and from a clean-
+environment test derive and document the minimal system-prerequisite list.
+Provide tools/dev/init-dev-host.sh as the secret-free, executable, self-verifying
+form of that prereq list (the portable configuration.nix equivalent). Place and
+document (manually) the host secrets needed to drive the existing DigitalOcean
+harness from the new VM (DO token, sask SSH key). Retire the NixOS-specific dev
+artifacts (flake.nix; NixOS dev-setup docs) and replace them with a plain
+dev-setup document. Verify the ENTIRE setup end to end - interpreter, app,
+host-init script, and deploy reachability to DO - without mutating production.
+"""
+
+out = """
+- ANY change to application code under src/, to tests, to message units, to
+  config schemas, or to the deploy harness (ansible/, tofu/, tools/ops deploy
+  scripts). If editing those, something is wrong - this is an environment port.
+- ANY change to the production droplet (already stock Ubuntu; untouched).
+- A Python-version bump beyond 3.12 (future, separate, gated on Werkzeug +
+  gunicorn 3.14 support).
+- Docker / containerization (declined, DD-0019).
+- Re-provisioning or re-deploying production as part of this work (a normal
+  redeploy may be run afterward as an independent sanity check, but it is not a
+  deliverable here).
+"""
+
+[deliverables]
+pyenv_and_python = """
+On the new Ubuntu VM: install pyenv and its build prerequisites; install
+CPython 3.12 (latest 3.12.x patch); set a project-local pin (pyenv local 3.12.x
+producing a .python-version in the repo root) so the project uses 3.12 while the
+system python3 remains 3.14. Confirm `python --version` inside the project
+resolves to 3.12.x. Do not alter the system interpreter.
+"""
+
+pyproject_constraint = """
+Confirm pyproject.toml's requires-python expresses ~=3.12 (or equivalent
+"3.12.x only" intent). If it currently allows a broader range that would admit
+3.14, tighten it to 3.12 so the CHECK matches the pinned PROVIDER. This is the
+only edit to pyproject.toml in scope, and it is a constraint/metadata change,
+not a dependency or behavior change.
+"""
+
+poetry_setup = """
+Run `poetry install` against the pyenv-provided 3.12 to create the project venv
+and install locked dependencies. Confirm poetry uses the 3.12 interpreter (poetry
+env info). Do not regenerate or bump the lockfile as part of this port (lock
+changes are a separate concern); if poetry refuses to install due to the
+interpreter constraint, that is signal to fix the pin, not to relock.
+"""
+
+clean_env_test = """
+THE CENTERPIECE. Create a re-runnable clean-environment verification (a script
+under tools/dev/, e.g. verify-clean-env.sh, plus a short documented procedure)
+that, on a host with no prior sask setup, performs: ensure pyenv + Python 3.12,
+poetry install, run the FULL test suite, and start the app enough to confirm it
+serves (a local boot + a health/route check). Run it on the new VM. CAPTURE
+every system-level package whose absence causes a failure - those failures ARE
+the authoritative system-prereq list. Cross-check the result against the
+predicted list from configuration.nix (python via pyenv, poetry, git, openssl,
+sqlite, opentofu, openssh, curl/wget) and against the dev-convenience vs.
+runtime distinction in DD-0019: note any surprises (e.g. a native lib needed by
+sqlite3/ssl that Ubuntu did not have preinstalled). The watch-items are the
+native-linked ones: libsqlite3 (stdlib sqlite3) and libssl (stdlib ssl/hashlib)
+- verify, do not assume, they are present or apt-installable.
+"""
+
+init_host_script = """
+tools/dev/init-dev-host.sh - the executable, portable "run this to init the
+environment" equivalent of the retired configuration.nix, scoped to the DEV
+host (distinct from the production provisioning the Ansible harness does; the
+name keeps the lane clear). It installs the NON-SECRET system setup: the apt
+system prerequisites, pyenv + Python 3.12, and Poetry. CRITICAL discipline -
+the package list in this script is NOT a hand-maintained parallel list; it is
+the executable form of the SAME list clean_env_test derives. The two must not
+drift. Enforce this by making the script SELF-VERIFYING against the test: the
+clean-environment verification runs THROUGH init-dev-host.sh - i.e. on a bare
+host, run init-dev-host.sh, then poetry install + full suite + serve check; if
+the suite passes, the script is complete and correct; if anything is still
+missing, the script (not a separate list) is fixed. The script handles NO
+secrets (see host_secrets) - it must be safe to commit, containing no tokens or
+keys.
+"""
+
+host_secrets = """
+The new VM needs two HOST-LOCAL secrets to drive the EXISTING, already-spec'd
+DigitalOcean harness (DD-0014 / SPEC-022/023/024). No DO design is created or
+changed here - the DO connection is built and working; it only needs its
+credentials re-placed on the new host:
+1. DIGITALOCEAN_TOKEN in infra.env on the new VM (the DO provider auth; kept
+   out of the repo and never logged, so it did not come over with the clone -
+   it must be re-placed).
+2. The sask-specific SSH keypair the DO ssh-key resource trusts (was
+   ~/.ssh/sask_ed25519 on the retired sask-dev VM). Copying the EXISTING keypair
+   to the new host is strongly preferred over generating a new one, because a
+   new key would require updating the digitalocean_ssh_key resource and the
+   droplet's authorized_keys - touching working infrastructure. Confirm the
+   user's already-working password-less SSH actually includes THIS sask key, not
+   only general inter-machine keys, since DO specifically trusts sask_ed25519.
+These are documented as a MANUAL "host secrets" step, NEVER automated in
+init-dev-host.sh or any committed script. init-dev-host.sh may, at most, CHECK
+for their presence (e.g. warn if infra.env or the key is absent) without ever
+containing their values.
+"""
+
+devsetup_doc = """
+Write docs/dev-setup.md (or update the existing dev-setup doc, replacing NixOS
+content): the from-scratch steps to stand up a sask dev environment on stock
+Ubuntu. It should point at init-dev-host.sh as the one-command system init, then
+cover the EMPIRICALLY DERIVED apt prerequisite list (for reference / manual
+runs), poetry install, run tests, run the app. It MUST include a clearly
+separated "Host secrets (manual)" subsection covering the DIGITALOCEAN_TOKEN in
+infra.env and the sask_ed25519 SSH key per host_secrets - explicitly flagged as
+manual and never scripted. Note that system python3 is 3.14 and the project
+deliberately uses pyenv-provided 3.12, with a one-line pointer to DD-0019 for
+the rationale. Keep it short and explicit.
+"""
+
+verify_all_setup = """
+VERIFY THE ENTIRE SETUP END TO END, not just the app-runs-locally slice. The
+new VM is only "done" when it can do everything the retired sask-dev VM could.
+Confirm, and record the result of, all of:
+1. Interpreter: project resolves to Python 3.12.x via pyenv; system python3 is
+   still 3.14 and untouched.
+2. App layer: poetry install clean; FULL test suite passes at prior count; app
+   boots and serves a route locally.
+3. Host init: init-dev-host.sh, run on a clean host, produces an environment in
+   which (2) passes - proving the script is the complete, correct, non-drifting
+   form of the prereq list.
+4. Deploy reachability: from the new VM, the EXISTING DO harness can authenticate
+   and reach DigitalOcean - e.g. a read-only `tofu plan` (no apply) against the
+   live state succeeds using infra.env's DIGITALOCEAN_TOKEN, and an SSH probe to
+   sask-droplet using sask_ed25519 connects. This proves the host secrets are
+   correctly placed WITHOUT mutating production. (A full redeploy is optional and
+   independent, not required by this spec.)
+5. Negative check: nothing in src/, tests, config schemas, or the deploy harness
+   was modified; production droplet untouched.
+Any failure here is a finding to fix or flag, not to silently work around.
+"""
+
+retire_nixos = """
+Retire the NixOS-specific dev artifacts: remove flake.nix (and flake.lock if
+present) from the active repo, and remove or clearly archive any NixOS dev-setup
+documentation, replaced by docs/dev-setup.md. configuration.nix, if it lives in
+the repo, is moved to an archive location or removed (it describes the retired
+VM, not the new one). Do NOT touch anything the deploy harness depends on - this
+is dev-host material only. Record what was removed.
+"""
+
+devlog_and_status = """
+Add a docs/devlog.md entry recording the port: the new Ubuntu VM, pyenv-3.12
+pin (and why not 3.14), the derived system-prereq list, the retired NixOS
+artifacts, and the clean-env test result. On acceptance set DD-0019, REQ-OPS-017,
+and SPEC-031 status to "accepted". Do not rewrite past devlog entries (the
+historical sask-dev/NixOS references stay as history).
+"""
+
+[acceptance]
+criteria = """
+1. On the new Ubuntu VM, the project resolves to Python 3.12.x via pyenv while
+   system python3 remains 3.14; a project-local .python-version pins 3.12.
+2. pyproject.toml requires-python expresses 3.12-only; poetry install succeeds
+   against the 3.12 venv.
+3. The full test suite passes at its prior count; the app boots locally and
+   serves a route. No src/, test, schema, or deploy-harness file was modified.
+4. tools/dev/verify-clean-env.sh (or equivalent) exists, is re-runnable, and was
+   run; its results produced the documented system-prereq list (every listed
+   package was required by the run; nothing unrequired was listed). Native
+   watch-items (libsqlite3, libssl) explicitly confirmed.
+5. tools/dev/init-dev-host.sh exists, is secret-free (safe to commit), and was
+   verified by running it on a clean host followed by a passing suite - proving
+   its package list is the same non-drifting list the clean-env test derives.
+6. Host secrets are in place and documented as a manual step: DIGITALOCEAN_TOKEN
+   in infra.env and the sask_ed25519 key present and DO-trusted; neither is
+   embedded in any committed script.
+7. Deploy reachability confirmed from the new VM WITHOUT mutating production: a
+   read-only tofu plan authenticates to DO via infra.env, and an SSH probe to
+   sask-droplet via sask_ed25519 connects.
+8. docs/dev-setup.md exists with the from-scratch Ubuntu procedure, a pointer to
+   init-dev-host.sh, the derived prereq list, and a manual "Host secrets"
+   subsection; NixOS dev content is gone from it.
+9. flake.nix and NixOS dev-setup artifacts are retired/archived; nothing the
+   deploy harness needs was touched; production droplet untouched.
+10. A devlog entry records the port; design-doc statuses updated on acceptance.
+"""
+
+uat = """
+[manual] On the new VM, from docs/dev-setup.md alone (as if setting up fresh):
+run init-dev-host.sh, place the host secrets per the manual subsection, then
+confirm a working environment - correct Python (3.12), passing full suite,
+serving app. Confirm deploy reachability with a read-only tofu plan and an SSH
+probe to sask-droplet (no apply, no redeploy). Optionally re-run the clean-env
+verification to confirm it is genuinely re-runnable. No production mutation is
+part of this UAT; an optional independent redeploy afterward confirms the live
+app still deploys from the unchanged harness.
+"""

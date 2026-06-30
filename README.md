@@ -6,20 +6,21 @@ functional areas added incrementally under `/src`.
 
 ## Quick start
 
-**Prerequisites:** [Nix](https://nixos.org/download) with flakes enabled.
+**Prerequisites:** Ubuntu 26.04 LTS (or Debian-style Linux). See
+[docs/dev-setup.md](docs/dev-setup.md) for the full procedure.
 
 ```bash
 git clone https://github.com/genuinemerit/sask.git
 cd sask
-nix develop
+bash tools/dev/init-dev-host.sh   # apt prereqs, pyenv, Python 3.12, Poetry
+poetry install
 ```
 
-Inside the shell:
+Verify:
 
 ```bash
-python3 --version   # 3.12.x
-poetry --version    # pinned via flake.lock
-ruff --version
+python --version    # 3.12.x (pyenv-pinned; system python3 is 3.14, untouched)
+poetry --version
 ```
 
 ## Layout
@@ -29,7 +30,7 @@ ansible/      Ansible playbooks deploying the app onto the production droplet
 config/       TOML engine configuration (time constants, calendars, seasons, timeline)
 design/       TOML design docs (decisions/, reqs/, specs/)
 docs/         living documents and guides
-infra/        infra/configuration.nix (dev VM) and infra/tofu/ (production droplet IaC)
+infra/        infra/archive/ (retired NixOS artifacts) and infra/tofu/ (production droplet IaC)
 assets/       local (dev/artist staging) + versioned (v0, deploy-ready) binary assets — see DD-0016
 secrets/      local credentials — git-ignored except README.md and *.example
 src/          Python source (package: sask)
@@ -39,11 +40,8 @@ tools/        developer tooling and deploy orchestration (see docs/deploy-runboo
 
 ## Web app
 
-Five browser pages are available locally on the dev VM, or live at
-[sask.davidstitt.net](https://sask.davidstitt.net). For local dev, open an
-SSH tunnel from the host (`ssh -L 5000:localhost:5000 sask-dev`), start the
-server on the VM, then navigate to `http://localhost:5000/` in a host
-browser.
+Five browser pages are available locally or live at
+[sask.davidstitt.net](https://sask.davidstitt.net).
 
 | Page | Description |
 |---|---|
@@ -67,22 +65,16 @@ accepts a Duration (Days) field for date-mode ranges.
 bash tools/dev/start_web.sh
 ```
 
-Or manually:
+Or manually (flask dev server):
 
 ```bash
-PYTHONPATH=src .venv/bin/flask --app sask.web run
+PYTHONPATH=src poetry run flask --app sask.web run
 ```
 
 Or with gunicorn:
 
 ```bash
-PYTHONPATH=src .venv/bin/gunicorn wsgi:app
-```
-
-**Install web dependencies (once):**
-
-```bash
-.venv/bin/pip install 'flask>=3.0' 'gunicorn>=22.0'
+PYTHONPATH=src poetry run gunicorn wsgi:app
 ```
 
 ## Pre-commit checks
@@ -113,9 +105,9 @@ python3 tools/dev/validate_specs.py
 
 ## Development environment
 
-See [docs/vm-setup.md](docs/vm-setup.md) for configuring the NixOS dev VM.
-The dev toolchain is pinned by `flake.lock`; `infra/configuration.nix` defines
-the host. Destroying and re-cloning the repo fully restores the environment.
+See [docs/dev-setup.md](docs/dev-setup.md) for the from-scratch Ubuntu setup.
+Python is pinned to 3.12 via pyenv; all tooling is managed by Poetry.
+`tools/dev/init-dev-host.sh` is the single-command system bootstrap.
 
 ## Deployment
 

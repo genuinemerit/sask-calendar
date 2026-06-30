@@ -1,0 +1,53 @@
+id        = "REQ-OPS-017"
+title     = "Verified minimal host-environment contract"
+category  = "OPS"
+priority  = "should"
+
+statement = """
+sask shall run as a conventional Poetry project on a stock Ubuntu LTS host
+without requiring NixOS, Docker, or any environment-owning tool. Its
+reproducibility contract with the host shall consist of exactly three
+documented parts: (1) Python pinned to 3.12 via pyenv (independent of the
+system interpreter), (2) the Poetry lockfile for application dependencies, and
+(3) an explicit list of system-level prerequisites that has been EMPIRICALLY
+VERIFIED by a clean-environment test (a from-scratch poetry install plus full
+test suite on a host with no prior sask setup), not merely asserted. The
+clean-environment test shall be a re-runnable artifact so the contract can be
+re-verified over time.
+"""
+
+rationale = """
+NixOS was a learning vehicle whose value is banked; it no longer improves the
+solo workflow and imposes VM/ssh overhead (DD-0019). Reproducibility for a
+project with a small dependency surface can be achieved by keeping that surface
+minimal, explicit, and verified, rather than by a tool that owns the
+environment. Pinning Python to the proven 3.12 (not Ubuntu 26.04's default
+3.14, which two production-critical dependencies do not yet support) keeps the
+live serving stack stable while the environment changes. Empirical verification
+turns "runs on any Linux-y foundation" from an assertion into a tested fact,
+and the re-runnable test guards against undocumented drift once NixOS's
+automatic enforcement is gone.
+"""
+
+acceptance = """
+1. On a clean Ubuntu LTS host (no prior sask setup), with pyenv providing
+   Python 3.12, `poetry install` succeeds and the full test suite passes,
+   using only the documented system prerequisites.
+2. The system-prerequisite list is recorded in a dev-setup document and was
+   derived from the clean-environment run (any package whose absence broke the
+   run appears on the list; nothing is on the list that the run did not
+   require).
+3. Python is 3.12 (verified at runtime), provided by pyenv, with the system's
+   3.14 left intact for the OS.
+4. No NixOS- or Docker-specific artifact is required to develop or run sask;
+   flake.nix and the NixOS dev-setup material are retired/archived.
+5. The clean-environment test is captured as a re-runnable script or documented
+   procedure.
+6. Existing application behavior is unchanged: the full suite passes at its
+   prior count; the deploy harness and production droplet are untouched.
+"""
+
+[links]
+implements   = ["DD-0019"]
+relates_to   = ["DD-0014", "REQ-OPS-001"]
+specified_by = ["SPEC-031"]

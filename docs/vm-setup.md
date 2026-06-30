@@ -1,4 +1,8 @@
-# VM setup — sask-dev
+# VM setup — sask-dev (DEPRECATED)
+
+> **Deprecated 2026-06-30 (DD-0019/SPEC-031).** The NixOS `sask-dev` VM is
+> retired. For current setup instructions see `docs/dev-setup.md`.
+> This file is kept as history only.
 
 Procedure for reconfiguring the existing NixOS VM instance as the sask
 development host. All steps are manual. The VM already has NixOS 25.11,

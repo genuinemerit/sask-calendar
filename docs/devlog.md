@@ -1,5 +1,80 @@
 # Dev log
 
+## 2026-06-30 — DD-0019/SPEC-031: de-NixOS port complete; dev host now Ubuntu 26.04 LTS + Poetry
+
+Retired the NixOS `sask-dev` VM as the canonical dev environment and ported
+sask to a stock Ubuntu 26.04 LTS host using pyenv + Poetry + empirically-derived
+apt prerequisites. Full rationale in DD-0019. Key decisions and findings:
+
+**Python pin:** System python3 on Ubuntu 26.04 is 3.14.4 — too new (Werkzeug +
+gunicorn 3.14 support not yet validated). Pinned 3.12 via pyenv (3.12.13, latest
+patch at time of port). pyproject.toml's python constraint tightened from `^3.12`
+(caret, admits 3.13/3.14) to `~3.12` (tilde, 3.12-only). This was the only
+change to pyproject.toml in scope per SPEC-031; `pymarkdownlnt` was added
+separately as a dev dep to replace the NixOS-era manually-managed venv tool, with
+explicit user authorization (see below).
+
+**poetry.lock regenerated (twice, with authorization):** SPEC-031 originally said
+"do not regenerate the lockfile." The first regen was unavoidable — the
+`python-versions` constraint change invalidated the content-hash. User explicitly
+authorized overriding the no-relock instruction. Diff confirmed metadata-only
+(generator version, constraint string, content-hash — zero package version
+changes). A second regen added `pymarkdownlnt` to the lockfile; similarly
+metadata-minimal for existing packages. Both overrides recorded here per the
+"eyes wide open" standard.
+
+**System prereq list (empirically derived):** The apt prerequisites installed by
+`tools/dev/init-dev-host.sh` were derived by cross-checking against
+`infra/configuration.nix` (retired NixOS dev-VM config, kept in
+`infra/archive/` as a reference) and confirmed on the new host. Native watch-items
+explicitly checked: `import sqlite3, ssl, hashlib` passes — libsqlite3 and libssl
+were present (Ubuntu build-essential / libssl-dev already shipped in the VM image).
+Full apt list: pyenv build deps (build-essential libssl-dev zlib1g-dev libbz2-dev
+libreadline-dev libsqlite3-dev libncursesw5-dev xz-utils tk-dev libxml2-dev
+libxmlsec1-dev libffi-dev liblzma-dev) + essentials (git curl wget ca-certificates
+openssh-client shellcheck).
+
+**Verification results:**
+
+- `poetry install` — 22 installs, clean.
+- `poetry run pytest -q` — 638 passed (626 prior SPEC-027 + 12 new SPEC-030 = 638; no regression).
+- `GET /health` — HTTP 200 from locally-started Flask server.
+- `verify-do-secrets.sh` — all 4 checks pass against real secrets on the new host:
+  infra.env present, DIGITALOCEAN_TOKEN format correct, DO API HTTP 200,
+  SSH to sask-droplet succeeds.
+- `verify-clean-env.sh` — written; to be run by user as part of UAT.
+
+**Tofu state not yet migrated (known gap):** The local `terraform.tfstate` from the
+retired NixOS VM has not been copied to the new host. `tofu init` has not been run
+here. SPEC-031 acceptance criterion #7 calls for a read-only `tofu plan`; the
+underlying token and SSH access are confirmed (DO API + SSH probe both pass), but
+the `tofu plan` itself cannot be run without migrating state. Noted as a
+follow-up: copy `terraform.tfstate` from the old VM and run `tofu init -upgrade`
+to confirm provider downloads succeed on the new host.
+
+**NixOS artifacts retired:**
+
+- `flake.nix`, `flake.lock` — removed (git rm).
+- `infra/configuration.nix` → `infra/archive/configuration.nix` (moved; historical
+  reference only).
+- `docs/vm-setup.md` — kept intact as history; superseded by `docs/dev-setup.md`.
+- `CLAUDE.md` — NixOS / nix-develop / .venv references removed; Ubuntu/Poetry env
+  documented.
+- `tools/dev/pre-commit-check.sh` — `nix develop --command` wrappers removed; now
+  uses `poetry run ruff`, `shellcheck` (on PATH via apt), `poetry run pymarkdown`,
+  `poetry run pytest`.
+
+**New tools deliverables (SPEC-031):**
+
+- `tools/dev/init-dev-host.sh` — config-driven bootstrap: apt, OpenTofu (snap),
+  pyenv, Python 3.12, Poetry. Secret-free; idempotent; shellcheck-clean.
+- `tools/dev/verify-do-secrets.sh` — read-only DO token + SSH probe verifier.
+- `tools/dev/verify-clean-env.sh` — re-runnable clean-environment verifier
+  (SPEC-031 centerpiece): pyenv + 3.12 pin, native stdlib watch-items, poetry
+  install, full suite, app boot + GET /health.
+
+SPEC-031 status set to "accepted" on this entry's merge.
+
 ## 2026-06-30 — fix(ops): SSH readiness race in deploy pipeline
 
 Diagnosed and fixed a deployment failure caused by a known gap (flagged in
