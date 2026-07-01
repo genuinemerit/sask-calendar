@@ -8,7 +8,7 @@ download). Writes a dated JSON result file under tests/results/perf/ and
 prints a pass/fail summary against the REQ-OPS-010 budgets.
 
 Usage:
-    PYTHONPATH=src .venv/bin/python3 tools/ops/perf_http.py [--base-url URL]
+    PYTHONPATH=src poetry run python3 tools/ops/perf_http.py [--base-url URL]
 """
 
 from __future__ import annotations

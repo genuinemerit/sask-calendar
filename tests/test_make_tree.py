@@ -14,6 +14,12 @@ import subprocess
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent.parent / "tools" / "helpers" / "make_tree.sh"
+# Resolved once, up front: the unhappy-path test strips PATH down to
+# exclude any directory containing `tree`, which on this host also strips
+# /usr/bin — i.e. bash's own directory. Passing bash's absolute path keeps
+# subprocess from needing to resolve "bash" via the (deliberately) reduced
+# PATH.
+BASH = shutil.which("bash")
 
 
 def make_fake_repo(tmp_path: Path) -> Path:
@@ -46,7 +52,7 @@ def test_writes_tree_txt_at_repo_root(tmp_path):
     stub_bin_dir = make_stub_tree_bin(tmp_path)
 
     result = subprocess.run(
-        ["bash", str(script_copy)],
+        [BASH, str(script_copy)],
         capture_output=True,
         text=True,
         check=False,
@@ -74,7 +80,7 @@ def test_missing_tree_binary_fails_cleanly(tmp_path):
     )
 
     result = subprocess.run(
-        ["bash", str(script_copy)],
+        [BASH, str(script_copy)],
         capture_output=True,
         text=True,
         check=False,

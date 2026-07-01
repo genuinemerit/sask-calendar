@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Provision (or re-converge) the sask droplet via OpenTofu.
 #
-# Run from the sask-dev VM, inside `nix develop`:
+# Run from the dev host (ubuvm), repo root:
 #
 #   bash tools/ops/provision.sh        # interactive: tofu prompts before applying
 #   bash tools/ops/provision.sh -y     # non-interactive: tofu -auto-approve

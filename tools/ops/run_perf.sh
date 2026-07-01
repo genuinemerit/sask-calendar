@@ -4,8 +4,8 @@
 # Layer 2 (HTTP timings against a live gunicorn) is a separate manual step,
 # since it needs a server running in another terminal:
 #
-#   PYTHONPATH=src .venv/bin/gunicorn wsgi:app -w 1 -b 127.0.0.1:8000
-#   PYTHONPATH=src .venv/bin/python3 tools/ops/perf_http.py
+#   PYTHONPATH=src poetry run gunicorn wsgi:app -w 1 -b 127.0.0.1:8000
+#   PYTHONPATH=src poetry run python3 tools/ops/perf_http.py
 #
 # Usage:
 #   bash tools/ops/run_perf.sh
@@ -14,13 +14,13 @@ set -euo pipefail
 
 cd "$(dirname "$0")/../.."
 
-.venv/bin/pytest tests/perf/ \
+poetry run pytest tests/perf/ \
     --benchmark-storage=file://./tests/results/perf/benchmarks \
     --benchmark-autosave \
     -v
 
 printf '\nLayer 1 benchmarks saved under tests/results/perf/benchmarks/\n'
 printf '\nFor Layer 2 (HTTP timings), in a separate terminal:\n'
-printf '  PYTHONPATH=src .venv/bin/gunicorn wsgi:app -w 1 -b 127.0.0.1:8000\n'
+printf '  PYTHONPATH=src poetry run gunicorn wsgi:app -w 1 -b 127.0.0.1:8000\n'
 printf 'then:\n'
-printf '  PYTHONPATH=src .venv/bin/python3 tools/ops/perf_http.py\n'
+printf '  PYTHONPATH=src poetry run python3 tools/ops/perf_http.py\n'

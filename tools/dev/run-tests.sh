@@ -88,7 +88,7 @@ if [[ $SAVE -eq 1 ]]; then
 
     # Capture output while still printing it to the terminal.
     tmp=$(mktemp)
-    .venv/bin/pytest "${pytest_args[@]}" 2>&1 | tee "$tmp"
+    poetry run pytest "${pytest_args[@]}" 2>&1 | tee "$tmp"
     pytest_exit=${PIPESTATUS[0]}
 
     [[ $pytest_exit -eq 0 ]] && status_line="PASS" || status_line="FAIL"
@@ -98,7 +98,7 @@ if [[ $SAVE -eq 1 ]]; then
         printf '**Date:** %s\n' "$(date +%Y-%m-%d)"
         printf '**Status:** %s\n\n' "$status_line"
         printf '```text\n'
-        printf '$ .venv/bin/pytest %s\n' "${pytest_args[*]}"
+        printf '$ poetry run pytest %s\n' "${pytest_args[*]}"
         cat "$tmp"
         printf '```\n'
     } > "$results_file"
@@ -106,7 +106,7 @@ if [[ $SAVE -eq 1 ]]; then
     rm "$tmp"
     printf '\nResults saved to %s\n' "$results_file"
 else
-    .venv/bin/pytest "${pytest_args[@]}"
+    poetry run pytest "${pytest_args[@]}"
     pytest_exit=$?
 fi
 

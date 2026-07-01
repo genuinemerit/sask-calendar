@@ -15,7 +15,7 @@
 # production venv, and the droplet-side timing script is removed (via a
 # trap, even on failure) before this script exits.
 #
-# Run from the sask-dev VM, inside `nix develop`:
+# Run from the dev host (ubuvm), repo root:
 #
 #   bash tools/ops/perf-remote.sh
 
@@ -65,7 +65,7 @@ echo
 
 echo "[4/6] Local engine timing (comparison baseline)..."
 ENGINE_LOCAL_JSON="$(mktemp)"
-PYTHONPATH=src .venv/bin/python3 tools/ops/perf_engine.py --config-dir config \
+PYTHONPATH=src poetry run python3 tools/ops/perf_engine.py --config-dir config \
     >"$ENGINE_LOCAL_JSON"
 echo
 
@@ -75,7 +75,7 @@ HTTP_REMOTE_JSON="$(mktemp)"
 # perf_http.py still writes --out before returning, so don't let `set -e`
 # skip the merge step below; the merged results are the point of this run
 # regardless of pass/fail.
-PYTHONPATH=src .venv/bin/python3 tools/ops/perf_http.py \
+PYTHONPATH=src poetry run python3 tools/ops/perf_http.py \
     --base-url "$BASE_URL" \
     --skip-preview --warmup 0 --repeats 3 \
     --download-warmup 0 --download-repeats 1 --download-delay-s 20 \

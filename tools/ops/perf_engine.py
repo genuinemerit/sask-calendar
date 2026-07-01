@@ -8,7 +8,7 @@ droplet's venv (where dev dependencies are deliberately absent). The same
 invocation also runs locally for an apples-to-apples comparison.
 
 Usage:
-    PYTHONPATH=src .venv/bin/python3 tools/ops/perf_engine.py [--config-dir DIR] [--out PATH]
+    PYTHONPATH=src poetry run python3 tools/ops/perf_engine.py [--config-dir DIR] [--out PATH]
 
 When --out is omitted, only the JSON result is printed to stdout (and
 nothing else), so `ssh sask-droplet "..." > local.json` captures a clean

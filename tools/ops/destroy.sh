@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Tear down the sask droplet and every resource OpenTofu created for it.
 #
-# Run from the sask-dev VM, inside `nix develop`:
+# Run from the dev host (ubuvm), repo root:
 #
 #   bash tools/ops/destroy.sh        # interactive: tofu prompts before each destroy
 #   bash tools/ops/destroy.sh -y     # non-interactive: tofu -auto-approve

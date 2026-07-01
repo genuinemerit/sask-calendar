@@ -2,8 +2,8 @@
 
 ## Toolchain
 
-- [NixOS 25.11](https://nixos.org/) — dev VM OS and flake channel pin
-- [Nix flakes](https://nixos.wiki/wiki/Flakes) — reproducible dev shell
+- [Ubuntu 26.04 LTS](https://ubuntu.com/) — dev host OS (DD-0019)
+- [pyenv](https://github.com/pyenv/pyenv) — Python 3.12 version pin, independent of system Python
 - [Poetry](https://python-poetry.org/docs/) — Python dependency management
 - [Ruff](https://docs.astral.sh/ruff/) — Python linter and formatter
 - [ShellCheck](https://www.shellcheck.net/) — shell-script linter (`tools/*/*.sh`)

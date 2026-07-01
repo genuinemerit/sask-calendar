@@ -1,8 +1,7 @@
 # Deploy runbook — sask.davidstitt.net
 
 Quick reference for operating the live droplet. Everything below runs
-from the `sask-dev` VM, inside `nix develop`, from the repo root, unless
-noted otherwise.
+from the dev host (ubuvm), from the repo root, unless noted otherwise.
 
 ## Connect
 
@@ -70,7 +69,7 @@ sudo apt upgrade -y
 [ -f /var/run/reboot-required ] && sudo reboot   # only if a kernel update needs it
 ```
 
-Then, back on sask-dev, confirm recovery:
+Then, back on the dev host, confirm recovery:
 
 ```bash
 bash tools/ops/acceptance-test.sh

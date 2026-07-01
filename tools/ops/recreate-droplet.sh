@@ -8,7 +8,7 @@
 # teardown (e.g. to stop paying for anything) but the wrong one for
 # "rebuild the droplet, keep the network identity."
 #
-# Run from the sask-dev VM, inside `nix develop`:
+# Run from the dev host (ubuvm), repo root:
 #
 #   bash tools/ops/recreate-droplet.sh        # interactive
 #   bash tools/ops/recreate-droplet.sh -y     # non-interactive: tofu -auto-approve

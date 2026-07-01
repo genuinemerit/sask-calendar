@@ -30,9 +30,14 @@ PYTHON_MINOR="3.12"
 # not sask dependencies. Two groups: pyenv's documented build dependencies
 # (https://github.com/pyenv/pyenv/wiki#suggested-build-environment), and the
 # runtime/harness/dev-tooling essentials configuration.nix also declared.
-# The lint binary used by pre-commit-check.sh, and the tree binary used by
-# tools/helpers/make_tree.sh, are native tools, not Python packages, so they
-# are listed here as apt prerequisites, not Poetry dev-deps.
+# The lint binary used by pre-commit-check.sh, the tree binary used by
+# tools/helpers/make_tree.sh, and ansible + rsync used by the tools/ops/
+# deploy harness are native tools, not Python packages, so they are listed
+# here as apt prerequisites, not Poetry dev-deps. Ubuntu's `ansible` apt
+# package (unlike pip's `ansible-core`) bundles the collections the deploy
+# harness needs (e.g. ansible.posix.synchronize) — this replaces the
+# `pkgs.ansible` + `pkgs.ansible-lint` the retired flake.nix devShell
+# provided, which the DD-0019 port dropped without a replacement.
 APT_PYENV_BUILD_DEPS=(
     build-essential
     libssl-dev
@@ -56,6 +61,8 @@ APT_ESSENTIALS=(
     openssh-client
     shellcheck
     tree
+    ansible
+    rsync
 )
 
 # ── Helpers ──────────────────────────────────────────────────────────────────

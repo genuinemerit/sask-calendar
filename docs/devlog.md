@@ -1,5 +1,48 @@
 # Dev log
 
+## 2026-07-01 — DD-0019 port audit: found ansible gap + 3 more `.venv` bugs
+
+Pre-flight audit ahead of next session's full deploy/redeploy + perf-test
+validation: asked "what did the NixOS->Ubuntu/Poetry port (DD-0019/
+SPEC-031) miss?" Found one real blocker and a class of repeat bug.
+
+**Blocker:** `ansible-playbook` was not installed anywhere on the dev host.
+The retired `flake.nix` devShell provided `pkgs.ansible` + `pkgs.ansible-lint`
+directly; the port dropped both without a replacement. `deploy.sh` and
+`redeploy.sh` both shell out to bare `ansible-playbook` — completely
+blocked. Fixed: added `ansible` + `rsync` (also previously undeclared,
+though already present) to `tools/dev/init-dev-host.sh`'s `APT_ESSENTIALS`
+and `docs/dev-setup.md`. Installed on this host; verified `ansible-playbook
+--version`, `ansible.posix` collection present, and `ansible-playbook
+site.yml --syntax-check` all pass with no live changes made.
+
+**Same `.venv/bin/...` bug as start_web.sh, in 3 more scripts:** confirmed
+broken by direct run, fixed to `poetry run`:
+
+- `tools/dev/run-tests.sh` (the general test runner)
+- `tools/ops/run_perf.sh` (local perf-benchmark baseline — the exact script
+  next session's "run performance tests locally" step depends on)
+- `tools/ops/perf-remote.sh`'s two *local* invocations (its remote
+  `/opt/sask/.venv/bin/python3` path was already correct — Ansible really
+  does create a plain `.venv` on the droplet via `ansible.builtin.pip`,
+  unrelated to the dev host's Poetry setup)
+
+Also fixed matching usage-docstrings in `perf_engine.py`/`perf_http.py`,
+and stale "sask-dev VM / nix develop" headers in `deploy-runbook.md`,
+`provision.sh`, `destroy.sh`, `recreate-droplet.sh`, `perf-remote.sh`, and
+`docs/references.md`'s toolchain list (NixOS/Nix flakes -> Ubuntu/pyenv).
+
+**Confirmed NOT a gotcha:** the dev-host Python 3.12 pin exists because
+Werkzeug/gunicorn aren't validated on Ubuntu 26.04's default 3.14 — but
+the production droplet image is pinned to `ubuntu-24-04-x64`
+(`infra/tofu/variables.tf`), which ships 3.12 natively. No mismatch today;
+worth a DD note if `droplet_image` is ever bumped, but not urgent.
+
+Verified end-to-end: `run-tests.sh` (669 passed), `run_perf.sh` (20
+benchmarks passed), `ansible-playbook --syntax-check` (clean). Also found
+and fixed a bug in my own `test_make_tree.py` from the prior entry: the
+unhappy-path PATH-stripping accidentally removed `bash`'s own directory.
+
 ## 2026-07-01 — `tools/helpers/` housekeeping: reviewed, fixed, tested
 
 Reviewed the 5 scripts in `tools/helpers/` (imported from another project,
